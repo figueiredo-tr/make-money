@@ -8,95 +8,76 @@
 ---
 
 ## 🎨 Diretriz de tema visual
-O projeto deve unir **controle financeiro sério** (dados corretos, números claros) com um **estilo visual "máfia italiana"** (elegante, escuro, dramático — tipo Godfather/Peaky Blinders). Isso é só estética/UI, não muda a lógica de negócio.
 
-Sugestões de direção pra Conta B aplicar (não usar nomes de obras/personagens registrados, criar identidade própria):
-- Paleta escura: preto, vinho/bordô, dourado/champagne como destaque
-- Tipografia serifada elegante pra títulos (estilo old money / editorial italiano)
-- Textura sutil (mármore, couro) em vez de flat design genérico
-- Vocabulário temático nos rótulos da UI, por exemplo:
-  - Dashboard → "Visão Geral" ou "O Livro"
-  - Clientes → "Associados" ou mantém "Clientes" (mais sóbrio)
-  - Empréstimos ativos → "Em aberto"
-  - Parcela atrasada → destaque em vermelho/dourado, ícone discreto (nada de humor pesado)
-- Manter tudo profissional e discreto — é uma ferramenta de trabalho real, o tema é tempero visual, não uma piada escancarada.
+Identidade definida e aplicada: **"Libretto"** — nome discreto (vem de "libretto di risparmio", caderneta bancária italiana real). Paleta escura (preto/bordô/dourado), tipografia Fraunces + Inter + JetBrains Mono, cards com cantos em moldura dourada, selos de status em vez de badges genéricos. Ver `app/globals.css` e `tailwind.config.js` pro token system completo.
 
-Ver skill `frontend-design` (Conta B deve consultar antes de montar a UI).
+Vocabulário aplicado na UI:
+
+- Dashboard → "Libretto"
+- Clientes → "Associados"
+- Empréstimo ativo → selo "Em aberto" (dourado)
+- Quitado → selo verde musgo
+- Atrasado → selo bordô
 
 ---
 
 ## 🅰️ CONTA A — Backend & Dados
-**Responsável por:** schema Supabase, RLS, lógica de cálculo de juros, geração de parcelas, auth.
 
-**Feito:**
-- [x] Schema SQL completo (`clientes`, `emprestimos`, `parcelas`, `pagamentos`)
-- [x] RLS policies (acesso restrito a autenticados)
-- [x] `lib/calculos.js` — juros simples e composto
-- [x] `lib/parcelas.js` — geração automática de parcelas, registro de pagamento, marcação de atraso
-- [x] `lib/supabaseClient.js` — client configurado
-- [x] Scaffold inicial do Next.js (package.json, Tailwind, layout base)
-- [x] Schema + RLS rodados no Supabase real e validados
-- [x] 2 usuários criados manualmente (você + cliente)
-- [x] Script de teste (`scripts/test-parcelas.mjs`) — fluxo completo testado e funcionando (autenticação, insert de cliente, empréstimo e geração de parcelas)
-- [x] `supabase/views.sql` — views de relatório: `resumo_geral` (cards do dashboard), `clientes_com_saldo` (listagem com risco), `proximos_vencimentos` (alertas de 7 dias)
+**Status: concluído.** Schema, RLS, `lib/calculos.js`, `lib/parcelas.js`, views (`resumo_geral`, `clientes_com_saldo`, `proximos_vencimentos`) — tudo rodado e validado no Supabase real.
 
-**Falta fazer:**
-- [ ] Rodar `views.sql` no Supabase (Conta A ainda precisa aplicar — pendente de confirmação)
-- [ ] Revisar cálculo de juros com o cliente (confirmar se ele trabalha com juros simples ou composto por padrão)
-
-**Próximo passo:** Conta A está com a base pronta e validada. Pode iniciar Conta B (frontend) usando as views para os dados do dashboard: `select * from resumo_geral`, `select * from clientes_com_saldo`, `select * from proximos_vencimentos`.
+**Pendência menor:** confirmar com o cliente se o padrão é juros simples ou composto (hoje o formulário deixa escolher por empréstimo).
 
 ---
 
 ## 🅱️ CONTA B — Frontend & UI
-**Responsável por:** telas de cadastro de cliente, cadastro de empréstimo, listagem, dashboard geral.
+
+**Status: concluído e em produção.**
 
 **Feito:**
-- [x] Identidade visual definida ("O Livro" — tema livro-caixa/dossiê, ver token system abaixo)
-- [x] `app/globals.css` + `tailwind.config.js` — tema completo (cores, tipografia, cards com cantos dourados, selos de status, tabela estilo razão)
-- [x] `app/layout.js` — fontes (Fraunces/Inter/JetBrains Mono) + `AuthProvider`
-- [x] `components/AuthProvider.js` — contexto de sessão Supabase
-- [x] `components/Sidebar.js` — navegação lateral + logout
-- [x] `components/ui/Card.js`, `Seal.js`, `StatCard.js` — componentes reutilizáveis
-- [x] `app/login/page.js` — login (sem cadastro público, usa `signInWithPassword`)
-- [x] `app/(app)/layout.js` — guarda de autenticação (redireciona pra `/login` se não houver sessão) + sidebar
-- [x] `app/(app)/dashboard/page.js` — cards de `resumo_geral` + tabela de `proximos_vencimentos`
-- [x] `app/(app)/clientes/page.js` — listagem de `clientes_com_saldo` com busca por nome/telefone
-- [x] `app/(app)/clientes/novo/page.js` — formulário de cadastro de cliente
-- [x] `app/(app)/emprestimos/novo/page.js` — formulário de empréstimo com prévia de cálculo (`calcularParcela`) e chamada a `gerarParcelas()` após o insert
-- [x] `jsconfig.json` — alias `@/`
-- [x] Atualizado `next` de 14.2.15 → 14.2.35 (corrigia várias vulnerabilidades críticas/altas do npm audit, sem breaking change)
-- [x] `npm run build` validado sem erros (testado localmente sem acesso à Google Fonts no sandbox — funciona normalmente na Vercel)
+
+- Tema visual "Libretto" completo (`app/globals.css`, `tailwind.config.js`)
+- `AuthProvider` + guarda de autenticação em `app/(app)/layout.js`
+- `app/login` — login sem cadastro público
+- `app/(app)/dashboard` — cards de `resumo_geral` + `proximos_vencimentos`
+- `app/(app)/clientes` — listagem de `clientes_com_saldo` com busca
+- `app/(app)/clientes/novo` — cadastro de cliente
+- `app/(app)/emprestimos/novo` — cadastro de empréstimo com prévia de cálculo + chamada a `gerarParcelas()`
+- `next` atualizado 14.2.15 → 14.2.35 (corrige vulnerabilidades críticas/altas)
+- **Deploy resolvido e no ar:** https://make-m0n3yy.vercel.app (troubleshooting feito: env vars configuradas na Vercel em Settings → Environments, e Framework Preset corrigido pra Next.js — antes estava caindo como "Other"/estático)
 
 **Falta fazer:**
-- [ ] Testar o fluxo real contra o Supabase (preencher `.env.local` com URL/anon key reais e validar login + inserts)
-- [ ] Estado vazio / feedback visual melhor pra quando não há associados cadastrados ainda
-- [ ] Paginação na listagem de associados se a base crescer muito
 
-**Nota de segurança:** `npm audit` ainda aponta 2 vulnerabilidades altas (server function endpoints / postcss) que só são corrigidas com Next 15/16 (breaking change). Não migrei sem alinhar, mas fica registrado — avaliar se vale migrar antes do deploy final.
+- [ ] Teste end-to-end completo (cadastrar associado → empréstimo → conferir parcelas geradas no Supabase → conferir dashboard) — ainda não validado ponta a ponta em produção
+- [ ] Estado vazio mais elaborado pra quando não há associados ainda
+- [ ] Paginação na listagem de associados se a base crescer
 
-**Próximo passo:** Conta C pode seguir com tela de parcelas, alertas de atraso e deploy — o layout `app/(app)/layout.js` já está pronto pra receber novas rotas protegidas (basta criar a pasta dentro de `app/(app)/`).
+**Nota de segurança:** `npm audit` ainda aponta 2 vulnerabilidades altas (server function endpoints / postcss), só resolvidas com Next 15/16 (breaking change). Avaliar antes de crescer o projeto.
 
 ---
 
 ## 🅲️ CONTA C — Integração, Regras de Negócio & Deploy
-**Responsável por:** tela de parcelas, alertas de atraso, testes end-to-end, deploy.
+
+**Responsável por:** tela de parcelas, alertas de atraso, testes end-to-end.
 
 **Feito:**
+
 - [ ] (ainda não iniciado)
 
 **Falta fazer:**
+
 - [ ] Tela de parcelas (marcar como pago via `registrarPagamento()`, ver vencidos/próximos)
 - [ ] Destaque visual de parcelas atrasadas
 - [ ] Teste end-to-end: cadastrar cliente → cadastrar empréstimo → gerar parcelas → pagar → refletir no dashboard
-- [ ] Deploy na Vercel + variáveis de ambiente
 - [ ] (opcional) Emissão de recibo em PDF
 
-**Próximo passo:** aguardando Conta A e B terem o básico de pé.
+**Já resolvido (não precisa mexer):** deploy na Vercel já está configurado e funcionando — env vars e Framework Preset ok. Se precisar de nova env var no futuro, é em Settings → Environments no painel da Vercel.
+
+**Próximo passo:** o layout `app/(app)/layout.js` já protege qualquer rota nova — basta criar a pasta (ex: `app/(app)/parcelas/`) que herda auth guard e sidebar automaticamente. Seguir o padrão visual em `app/globals.css` (classes `.card`, `.seal-*`, `.ledger`, `.btn-*`, `.input`).
 
 ---
 
 ## Regras gerais pra todas as contas
+
 1. Sempre `git pull` antes de começar a trabalhar.
 2. Mexer só na sua área evita conflito de merge (ver README.md pra estrutura de pastas).
 3. Commits pequenos e frequentes, com mensagens claras.
