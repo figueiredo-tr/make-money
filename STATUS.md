@@ -35,14 +35,16 @@ Ver skill `frontend-design` (Conta B deve consultar antes de montar a UI).
 - [x] `lib/parcelas.js` — geração automática de parcelas, registro de pagamento, marcação de atraso
 - [x] `lib/supabaseClient.js` — client configurado
 - [x] Scaffold inicial do Next.js (package.json, Tailwind, layout base)
+- [x] Schema + RLS rodados no Supabase real e validados
+- [x] 2 usuários criados manualmente (você + cliente)
+- [x] Script de teste (`scripts/test-parcelas.mjs`) — fluxo completo testado e funcionando (autenticação, insert de cliente, empréstimo e geração de parcelas)
+- [x] `supabase/views.sql` — views de relatório: `resumo_geral` (cards do dashboard), `clientes_com_saldo` (listagem com risco), `proximos_vencimentos` (alertas de 7 dias)
 
 **Falta fazer:**
-- [ ] Rodar o schema no projeto Supabase real e testar
-- [ ] Criar os 2 usuários manualmente no Supabase (você + cliente)
+- [ ] Rodar `views.sql` no Supabase (Conta A ainda precisa aplicar — pendente de confirmação)
 - [ ] Revisar cálculo de juros com o cliente (confirmar se ele trabalha com juros simples ou composto por padrão)
-- [ ] Função de resumo/relatório (total emprestado, total a receber, inadimplência) — pode virar uma view SQL
 
-**Próximo passo:** validar o schema rodando localmente e testar `gerarParcelas()` com dados fake.
+**Próximo passo:** Conta A está com a base pronta e validada. Pode iniciar Conta B (frontend) usando as views para os dados do dashboard: `select * from resumo_geral`, `select * from clientes_com_saldo`, `select * from proximos_vencimentos`.
 
 ---
 
