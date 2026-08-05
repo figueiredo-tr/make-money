@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/components/AuthProvider';
-import Sidebar from '@/components/Sidebar';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import Sidebar from "@/components/Sidebar";
+import BottomNav from "@/components/BottomNav";
 
 export default function AppLayout({ children }) {
   const { session, loading } = useAuth();
@@ -11,7 +12,7 @@ export default function AppLayout({ children }) {
 
   useEffect(() => {
     if (!loading && !session) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [loading, session, router]);
 
@@ -28,9 +29,12 @@ export default function AppLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       <Sidebar />
-      <main className="flex-1 relative z-[1]">{children}</main>
+      <main className="flex-1 relative z-[1] pb-20 lg:pb-0 overflow-x-hidden">
+        {children}
+      </main>
+      <BottomNav />
     </div>
   );
 }

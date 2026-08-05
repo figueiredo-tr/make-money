@@ -21,7 +21,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 shrink-0 bg-bg-elevated border-r border-line flex flex-col relative">
+    <aside className="hidden lg:flex w-64 shrink-0 bg-bg-elevated border-r border-line flex-col relative">
       <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gold-dim/40 to-transparent" />
 
       <div className="px-6 py-7 border-b border-line">
