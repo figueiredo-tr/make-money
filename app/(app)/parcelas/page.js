@@ -57,7 +57,7 @@ export default function ParcelasPage() {
 
     const { data, error } = await supabase
       .from('parcelas')
-      .select('*, emprestimos(id, cliente_id, status, juros_dia, clientes(id, nome, telefone))')
+      .select('*, emprestimos(id, cliente_id, status, juros_dia, juros_dia_tipo, clientes(id, nome, telefone))')
       .order('data_vencimento', { ascending: true });
 
     if (error) setErro(error.message);
@@ -234,7 +234,12 @@ export default function ParcelasPage() {
                       {grupo.parcelas.map((p) => {
                         const restante = p.valor_previsto - (p.valor_pago || 0);
                         const dias = diasEmAtraso(p.data_vencimento);
-                        const juros = calcularJurosAtraso(restante, p.emprestimos?.juros_dia, dias);
+                        const juros = calcularJurosAtraso(
+                          restante,
+                          p.emprestimos?.juros_dia,
+                          dias,
+                          p.emprestimos?.juros_dia_tipo
+                        );
                         return (
                           <tr key={p.id} className={p.status === 'atrasado' ? 'bg-wine/[0.04]' : ''}>
                             <td className="font-mono text-muted">#{p.numero_parcela}</td>

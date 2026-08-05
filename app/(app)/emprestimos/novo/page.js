@@ -30,6 +30,7 @@ export default function NovoEmprestimoPage() {
   const [tipoJuros, setTipoJuros] = useState("fixo");
   const [periodicidade, setPeriodicidade] = useState("mensal");
   const [jurosDia, setJurosDia] = useState("");
+  const [jurosDiaTipo, setJurosDiaTipo] = useState("percentual");
   const [numeroParcelas, setNumeroParcelas] = useState("");
   const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -77,6 +78,7 @@ export default function NovoEmprestimoPage() {
       tipo_juros: tipoJuros,
       periodicidade,
       juros_dia: parseFloat(jurosDia) || 0,
+      juros_dia_tipo: jurosDiaTipo,
       numero_parcelas: parseInt(numeroParcelas, 10),
       data_primeiro_vencimento: dataPrimeiroVencimento,
       observacoes: observacoes.trim() || null,
@@ -205,21 +207,47 @@ export default function NovoEmprestimoPage() {
           </div>
 
           <div>
-            <label className="field-label" htmlFor="juros-dia">
-              Juros ao dia por atraso (%)
-            </label>
-            <input
-              id="juros-dia"
-              type="number"
-              min="0"
-              step="0.01"
-              className="input font-mono max-w-[10rem]"
-              value={jurosDia}
-              onChange={(e) => setJurosDia(e.target.value)}
-              placeholder="0,33"
-            />
+            <label className="field-label">Juros por atraso</label>
+            <div className="flex gap-4 items-end">
+              <div className="flex rounded-sm border border-line overflow-hidden shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setJurosDiaTipo("percentual")}
+                  className={`px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    jurosDiaTipo === "percentual"
+                      ? "bg-gold/10 text-gold"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  % ao dia
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setJurosDiaTipo("valor")}
+                  className={`px-3 py-2 text-xs font-semibold uppercase tracking-wide border-l border-line transition-colors ${
+                    jurosDiaTipo === "valor"
+                      ? "bg-gold/10 text-gold"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  R$ ao dia
+                </button>
+              </div>
+              <input
+                id="juros-dia"
+                type="number"
+                min="0"
+                step="0.01"
+                className="input font-mono max-w-[10rem]"
+                value={jurosDia}
+                onChange={(e) => setJurosDia(e.target.value)}
+                placeholder={jurosDiaTipo === "percentual" ? "0,33" : "5,00"}
+              />
+            </div>
             <p className="text-xs text-faint mt-1.5">
-              Aplicado sobre o valor restante da parcela, multiplicado pelos dias de atraso.
+              {jurosDiaTipo === "percentual"
+                ? "% aplicado sobre o valor restante da parcela, multiplicado pelos dias de atraso."
+                : "Valor fixo em R$ por dia de atraso, multiplicado pelos dias de atraso."}
             </p>
           </div>
 

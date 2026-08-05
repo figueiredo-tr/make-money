@@ -41,7 +41,8 @@ create table if not exists emprestimos (
   taxa_juros numeric(6,3) not null check (taxa_juros >= 0), -- em % ao mês
   tipo_juros text not null default 'simples' check (tipo_juros in ('simples','composto','fixo')),
   periodicidade text not null default 'mensal' check (periodicidade in ('mensal','semanal')),
-  juros_dia numeric(6,3) not null default 0 check (juros_dia >= 0), -- % ao dia sobre o restante, aplicado se atrasar
+  juros_dia numeric(6,3) not null default 0 check (juros_dia >= 0), -- % ao dia OU R$ ao dia, conforme juros_dia_tipo
+  juros_dia_tipo text not null default 'percentual' check (juros_dia_tipo in ('percentual','valor')),
   numero_parcelas int not null check (numero_parcelas > 0),
   data_inicio date not null default current_date,
   data_primeiro_vencimento date not null,
