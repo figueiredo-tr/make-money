@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Libretto" },
   { href: "/clientes", label: "Associados" },
+  { href: "/parcelas", label: "Parcelas" },
   { href: "/emprestimos/novo", label: "Novo Empréstimo" },
 ];
 
