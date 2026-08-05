@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 04/08/2026 — Conta A
+Última atualização: 04/08/2026 — Conta B
 
 ---
 
@@ -52,16 +52,30 @@ Ver skill `frontend-design` (Conta B deve consultar antes de montar a UI).
 **Responsável por:** telas de cadastro de cliente, cadastro de empréstimo, listagem, dashboard geral.
 
 **Feito:**
-- [ ] (ainda não iniciado)
+- [x] Identidade visual definida ("O Livro" — tema livro-caixa/dossiê, ver token system abaixo)
+- [x] `app/globals.css` + `tailwind.config.js` — tema completo (cores, tipografia, cards com cantos dourados, selos de status, tabela estilo razão)
+- [x] `app/layout.js` — fontes (Fraunces/Inter/JetBrains Mono) + `AuthProvider`
+- [x] `components/AuthProvider.js` — contexto de sessão Supabase
+- [x] `components/Sidebar.js` — navegação lateral + logout
+- [x] `components/ui/Card.js`, `Seal.js`, `StatCard.js` — componentes reutilizáveis
+- [x] `app/login/page.js` — login (sem cadastro público, usa `signInWithPassword`)
+- [x] `app/(app)/layout.js` — guarda de autenticação (redireciona pra `/login` se não houver sessão) + sidebar
+- [x] `app/(app)/dashboard/page.js` — cards de `resumo_geral` + tabela de `proximos_vencimentos`
+- [x] `app/(app)/clientes/page.js` — listagem de `clientes_com_saldo` com busca por nome/telefone
+- [x] `app/(app)/clientes/novo/page.js` — formulário de cadastro de cliente
+- [x] `app/(app)/emprestimos/novo/page.js` — formulário de empréstimo com prévia de cálculo (`calcularParcela`) e chamada a `gerarParcelas()` após o insert
+- [x] `jsconfig.json` — alias `@/`
+- [x] Atualizado `next` de 14.2.15 → 14.2.35 (corrigia várias vulnerabilidades críticas/altas do npm audit, sem breaking change)
+- [x] `npm run build` validado sem erros (testado localmente sem acesso à Google Fonts no sandbox — funciona normalmente na Vercel)
 
 **Falta fazer:**
-- [ ] Tela de login (restrita, sem cadastro público)
-- [ ] Formulário de cadastro de cliente
-- [ ] Formulário de cadastro de empréstimo (chama `gerarParcelas()` da Conta A depois do insert)
-- [ ] Listagem/tabela de clientes com busca
-- [ ] Dashboard: total emprestado, total a receber, taxa de inadimplência
+- [ ] Testar o fluxo real contra o Supabase (preencher `.env.local` com URL/anon key reais e validar login + inserts)
+- [ ] Estado vazio / feedback visual melhor pra quando não há associados cadastrados ainda
+- [ ] Paginação na listagem de associados se a base crescer muito
 
-**Próximo passo:** aguardando schema validado pela Conta A pra plugar os formulários. Pode adiantar UI com dados mockados.
+**Nota de segurança:** `npm audit` ainda aponta 2 vulnerabilidades altas (server function endpoints / postcss) que só são corrigidas com Next 15/16 (breaking change). Não migrei sem alinhar, mas fica registrado — avaliar se vale migrar antes do deploy final.
+
+**Próximo passo:** Conta C pode seguir com tela de parcelas, alertas de atraso e deploy — o layout `app/(app)/layout.js` já está pronto pra receber novas rotas protegidas (basta criar a pasta dentro de `app/(app)/`).
 
 ---
 

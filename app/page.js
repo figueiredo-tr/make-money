@@ -1,12 +1,21 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+
 export default function Home() {
+  const { session, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    router.replace(session ? '/dashboard' : '/login');
+  }, [loading, session, router]);
+
   return (
     <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Sistema de Gestão de Empréstimos</h1>
-        <p className="text-gray-500 mt-2">
-          Placeholder — UI real será construída pela Conta B (ver STATUS.md)
-        </p>
-      </div>
+      <p className="eyebrow">Carregando…</p>
     </main>
   );
 }
