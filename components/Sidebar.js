@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'O Livro' },
-  { href: '/clientes', label: 'Associados' },
-  { href: '/emprestimos/novo', label: 'Novo Empréstimo' },
+  { href: "/dashboard", label: "Libretto" },
+  { href: "/clientes", label: "Associados" },
+  { href: "/emprestimos/novo", label: "Novo Empréstimo" },
 ];
 
 export default function Sidebar() {
@@ -16,7 +16,7 @@ export default function Sidebar() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
   }
 
   return (
@@ -25,20 +25,22 @@ export default function Sidebar() {
 
       <div className="px-6 py-7 border-b border-line">
         <p className="eyebrow">Sistema Interno</p>
-        <h1 className="font-display italic text-xl text-ink mt-1">O Livro</h1>
+        <h1 className="font-display italic text-xl text-ink mt-1">Libretto</h1>
       </div>
 
       <nav className="flex-1 px-3 py-5 space-y-1">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const active =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
               className={`block px-3 py-2.5 text-sm rounded-sm transition-colors ${
                 active
-                  ? 'bg-gold/10 text-gold border-l-2 border-gold pl-[10px]'
-                  : 'text-muted hover:text-ink hover:bg-white/[0.02] border-l-2 border-transparent pl-[10px]'
+                  ? "bg-gold/10 text-gold border-l-2 border-gold pl-[10px]"
+                  : "text-muted hover:text-ink hover:bg-white/[0.02] border-l-2 border-transparent pl-[10px]"
               }`}
             >
               {item.label}
@@ -48,7 +50,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="px-3 py-5 border-t border-line">
-        <button onClick={handleLogout} className="w-full text-left px-3 py-2.5 text-sm text-faint hover:text-muted transition-colors">
+        <button
+          onClick={handleLogout}
+          className="w-full text-left px-3 py-2.5 text-sm text-faint hover:text-muted transition-colors"
+        >
           Sair
         </button>
       </div>
