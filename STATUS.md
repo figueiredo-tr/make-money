@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 05/08/2026 — Conta A
+Última atualização: 05/08/2026 — Conta C
 
 ---
 
@@ -13,41 +13,18 @@ Identidade "Libretto" aplicada em todas as telas, incluindo a ficha de cliente e
 
 ---
 
-## 📱 PWA (app instalável) — NOVO, requer ação da Conta B e C
+## 📱 PWA (app instalável)
 
-O objetivo é o sistema funcionar "como um app" no celular do contratante (instalável, tela cheia, sem barra do navegador). Trabalho já adiantado pela Conta A:
+O objetivo é o sistema funcionar "como um app" no celular do contratante (instalável, tela cheia, sem barra do navegador).
 
-- [x] `app/layout.js` — `metadata` atualizado com `manifest: '/manifest.json'` e `appleWebApp` (tela cheia no iPhone) + export `viewport` com `themeColor: '#0a0a0a'`
-- [x] Ícones gerados: `icon-192.png` e `icon-512.png` (monograma "L" dourado sobre vinho escuro, moldura circular — linha "old money" combinando com o tema)
+- [x] `app/layout.js` — `metadata` com `manifest: '/manifest.json'` e `appleWebApp` (tela cheia no iPhone) + export `viewport` com `themeColor: '#0a0a0a'`
+- [x] Ícones (`icon-192.png`, `icon-512.png`) e `manifest.json` — **corrigido pela Conta C:** a Conta A tinha commitado esses 3 arquivos dentro de `app/public/`, mas o Next.js só serve estático a partir de `public/` na raiz do projeto — do jeito que estava, `/manifest.json` e os ícones dariam 404 em produção mesmo depois do deploy. Movidos pra `public/` na raiz.
 
-**Pendente (Conta B):**
+**Ainda falta (ação manual, não dá pra fazer por código):**
 
-- [ ] Colocar `icon-192.png` e `icon-512.png` dentro de `public/` (ícones de placeholder — se a Conta B tiver uma identidade visual mais elaborada definida, pode substituir por uma versão própria, só manter os tamanhos 192x192 e 512x512)
-- [ ] Criar `public/manifest.json` com este conteúdo:
-
-```json
-{
-  "name": "Libretto",
-  "short_name": "Libretto",
-  "description": "Sistema de gestão de empréstimos",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
-  "orientation": "portrait",
-  "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
-}
-```
-
-- [ ] Revisar UI com foco mobile-first (o contratante usa mais celular): botões maiores, considerar navegação por abas fixas embaixo tipo app nativo, evitar tabelas largas com scroll horizontal nas telas de parcelas/clientes
-
-**Pendente (Conta C):**
-
-- [ ] Trocar nome do projeto na Vercel de `make-m0n3yy` pra `libretto` (Settings > General > Project Name) — isso já muda a URL pra `libretto.vercel.app` automaticamente
-- [ ] Depois do deploy com manifest + ícones, testar no celular: abrir o site e conferir se aparece "Adicionar à tela inicial" / "Instalar app"
+- [ ] Revisar UI mobile-first (Conta B): botões maiores, navegação por abas fixas embaixo, evitar tabelas largas com scroll horizontal em parcelas/clientes
+- [ ] Trocar nome do projeto na Vercel de `make-m0n3yy` pra `libretto` (Settings → General → Project Name na Vercel) — muda a URL pra `libretto.vercel.app`
+- [ ] Depois do próximo deploy, testar no celular se aparece "Adicionar à tela inicial" / "Instalar app"
 
 ---
 
@@ -91,15 +68,18 @@ O objetivo é o sistema funcionar "como um app" no celular do contratante (insta
 
 - `app/(app)/parcelas/page.js` — registrar pagamento, quitação automática do empréstimo (`verificarQuitacaoEmprestimo` em `lib/parcelas.js`), destaque visual de atraso
 - Reorganização feita pela Conta B (agrupamento por associado) conferida — a lógica de pagamento/quitação continua íntegra, só mudou o layout
-- Deploy na Vercel funcionando
-- Migração `002_periodicidade_juros_fixo.sql` conferida linha a linha e sincronizada com `schema.sql`
-- Removido `conta-c-tela-parcelas.patch` que tinha sido commitado sem querer no repositório; adicionado `*.patch` no `.gitignore`
+- Lista de parcelas virou accordion por associado (clica pra expandir) — evita lista enorme
+- Coluna "Juros dia": juros por atraso configurável no cadastro do empréstimo, em **percentual** (% sobre o restante × dias) ou **valor fixo** (R$ × dias) — campo `juros_dia_tipo`, migrations `003_juros_dia.sql` e `004_juros_dia_tipo.sql`
+- Corrigido PWA: ícones e `manifest.json` estavam em `app/public/` (não servido pelo Next.js) e movidos pra `public/` na raiz
+- Removida migration duplicada `supabase/002_periodicidade_juros_fixo.sql` (fora da pasta `migrations/`, conteúdo idêntico ao que já existia em `supabase/migrations/002_...`)
+- Deploy na Vercel: resolvido problema de Framework Preset resetando pra "Other" (causava "No Output Directory named public") — reconfirmado como "Next.js" nas Settings
 
 **Falta fazer:**
 
-- [ ] Teste end-to-end: cadastrar cliente → empréstimo (testar `tipo_juros = 'fixo'` e `periodicidade = 'semanal'`) → gerar parcelas → pagar → refletir no dashboard
+- [ ] Teste end-to-end: cadastrar cliente → empréstimo (testar `tipo_juros = 'fixo'`, `periodicidade = 'semanal'`, `juros_dia_tipo` nos dois modos) → gerar parcelas → pagar → refletir no dashboard
 - [ ] (opcional) Emissão de recibo em PDF
-- [ ] Ver pendências de PWA na seção acima (trocar nome do projeto na Vercel, testar instalação no celular)
+- [ ] Trocar nome do projeto na Vercel pra `libretto` — ação manual no painel, ninguém fez ainda
+- [ ] Rodar migrations `003` e `004` no Supabase se ainda não rodou (ver arquivos em `supabase/migrations/`)
 
 ---
 
