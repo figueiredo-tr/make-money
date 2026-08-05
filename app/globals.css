@@ -32,14 +32,22 @@ body {
 body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(122, 31, 43, 0.10), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201, 162, 75, 0.05), transparent);
+    radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      rgba(122, 31, 43, 0.1),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 100% 100%,
+      rgba(201, 162, 75, 0.05),
+      transparent
+    );
   min-height: 100vh;
 }
 
 /* leather/paper grain texture */
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -78,7 +86,7 @@ body::before {
 .card-corners::after,
 .card-corners > .corner-tl,
 .card-corners > .corner-br {
-  content: '';
+  content: "";
   position: absolute;
   width: 14px;
   height: 14px;
@@ -230,8 +238,15 @@ body::before {
   background: var(--text-muted);
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 table.ledger {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 0.875rem;
 }

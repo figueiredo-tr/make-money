@@ -1,20 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
-import Card from '@/components/ui/Card';
-import Seal from '@/components/ui/Seal';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import Card from "@/components/ui/Card";
+import Seal from "@/components/ui/Seal";
 
 function formatBRL(value) {
-  return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return (value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 }
 
 export default function ClientesPage() {
   const router = useRouter();
   const [clientes, setClientes] = useState([]);
-  const [busca, setBusca] = useState('');
+  const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
@@ -22,9 +25,9 @@ export default function ClientesPage() {
     async function carregar() {
       setCarregando(true);
       const { data, error } = await supabase
-        .from('clientes_com_saldo')
-        .select('*')
-        .order('nome', { ascending: true });
+        .from("clientes_com_saldo")
+        .select("*")
+        .order("nome", { ascending: true });
 
       if (error) setErro(error.message);
       else setClientes(data || []);
@@ -38,7 +41,9 @@ export default function ClientesPage() {
     const termo = busca.trim().toLowerCase();
     if (!termo) return clientes;
     return clientes.filter(
-      (c) => c.nome?.toLowerCase().includes(termo) || c.telefone?.toLowerCase().includes(termo)
+      (c) =>
+        c.nome?.toLowerCase().includes(termo) ||
+        c.telefone?.toLowerCase().includes(termo),
     );
   }, [clientes, busca]);
 
@@ -74,45 +79,56 @@ export default function ClientesPage() {
           <p className="text-sm text-faint py-4">Carregando…</p>
         ) : filtrados.length === 0 ? (
           <p className="text-sm text-faint py-4">
-            {busca ? 'Nenhum associado encontrado para essa busca.' : 'Nenhum associado cadastrado ainda.'}
+            {busca
+              ? "Nenhum associado encontrado para essa busca."
+              : "Nenhum associado cadastrado ainda."}
           </p>
         ) : (
-          <table className="ledger">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Telefone</th>
-                <th>Empréstimos</th>
-                <th>Saldo devedor</th>
-                <th>Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.map((c) => (
-                <tr
-                  key={c.cliente_id}
-                  onClick={() => router.push(`/clientes/${c.cliente_id}`)}
-                  className="cursor-pointer"
-                >
-                  <td className="text-ink underline decoration-line hover:decoration-gold transition-colors">
-                    {c.nome}
-                  </td>
-                  <td className="font-mono text-muted">{c.telefone || '—'}</td>
-                  <td className="font-mono text-muted">{c.total_emprestimos}</td>
-                  <td className="font-mono">{formatBRL(c.saldo_devedor)}</td>
-                  <td>
-                    {c.parcelas_atrasadas > 0 ? (
-                      <Seal status="atrasado" label={`${c.parcelas_atrasadas} em atraso`} />
-                    ) : c.saldo_devedor > 0 ? (
-                      <Seal status="ativo" />
-                    ) : (
-                      <Seal status="quitado" />
-                    )}
-                  </td>
+          <div className="table-scroll">
+            <table className="ledger">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Telefone</th>
+                  <th>Empréstimos</th>
+                  <th>Saldo devedor</th>
+                  <th>Situação</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtrados.map((c) => (
+                  <tr
+                    key={c.cliente_id}
+                    onClick={() => router.push(`/clientes/${c.cliente_id}`)}
+                    className="cursor-pointer"
+                  >
+                    <td className="text-ink underline decoration-line hover:decoration-gold transition-colors">
+                      {c.nome}
+                    </td>
+                    <td className="font-mono text-muted">
+                      {c.telefone || "—"}
+                    </td>
+                    <td className="font-mono text-muted">
+                      {c.total_emprestimos}
+                    </td>
+                    <td className="font-mono">{formatBRL(c.saldo_devedor)}</td>
+                    <td>
+                      {c.parcelas_atrasadas > 0 ? (
+                        <Seal
+                          status="atrasado"
+                          label={`${c.parcelas_atrasadas} em atraso`}
+                        />
+                      ) : c.saldo_devedor > 0 ? (
+                        <Seal status="ativo" />
+                      ) : (
+                        <Seal status="quitado" />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </div>

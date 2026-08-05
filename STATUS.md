@@ -18,18 +18,18 @@ Identidade "Libretto" aplicada em todas as telas, incluindo a ficha de cliente e
 O objetivo é o sistema funcionar "como um app" no celular do contratante (instalável, tela cheia, sem barra do navegador).
 
 - [x] `app/layout.js` — `metadata` com `manifest: '/manifest.json'` e `appleWebApp` (tela cheia no iPhone) + export `viewport` com `themeColor: '#0a0a0a'`
-- [x] Ícones (`icon-192.png`, `icon-512.png`) e `manifest.json` em `public/` na raiz (corrigido pela Conta C, estavam em `app/public/` por engano)
-- [x] Instalação testada e confirmada funcionando no celular (print do usuário: ícone Libretto na tela inicial, abre em tela cheia)
-- [x] **Navegação mobile corrigida (Conta A):** o layout usava uma sidebar fixa de desktop (`w-64`) sem nenhuma adaptação — no celular isso empurrava o conteúdo pra fora da tela e causava scroll horizontal / aparência "distorcida e grande" (reportado pelo usuário com prints). Resolvido:
-  - Novo `components/BottomNav.js` — barra de navegação fixa embaixo, só aparece em telas pequenas (`lg:hidden`), com os mesmos 4 itens da sidebar (Início, Associados, Parcelas, Novo)
-  - `components/Sidebar.js` — `<aside>` agora é `hidden lg:flex` (só aparece em telas grandes)
-  - `app/(app)/layout.js` (`AppLayout`) — vira `flex-col` no mobile / `flex-row` no desktop (`lg:flex-row`), `<main>` ganha `pb-20` no mobile (espaço pra não ficar atrás do BottomNav) e `overflow-x-hidden` pra conter tabelas largas
+- [x] Ícones (`icon-192.png`, `icon-512.png`) e `manifest.json` em `public/` na raiz
+- [x] Instalação testada e confirmada funcionando no celular (ícone Libretto na tela inicial, abre em tela cheia)
+- [x] **Navegação mobile:** sidebar de desktop (`w-64`) foi trocada por `hidden lg:flex` e criado `components/BottomNav.js` — barra fixa embaixo, só em telas pequenas (`lg:hidden`), com os 4 itens (Início, Associados, Parcelas, Novo). `app/(app)/layout.js` ajustado (`flex-col`/`lg:flex-row`, `pb-20` no `<main>` mobile). **Testado e funcionando.**
+- [x] **Tabelas cortadas no mobile — corrigido:** todas as 4 tabelas do sistema usam a mesma classe global `table.ledger` (`app/globals.css`), mas nenhuma tinha contêiner de scroll — por isso cortava em todas as telas ao mesmo tempo (reportado pelo usuário com print, confirmado que acontecia em Dashboard, Associados, Ficha do Associado e Parcelas). Corrigido:
+  - `app/globals.css` — nova classe `.table-scroll` (`overflow-x: auto`) + `table.ledger` ganhou `min-width: 640px` (evita colunas espremidas demais)
+  - Cada `<table className="ledger">` nas 4 páginas envolvida por `<div className="table-scroll">...</div>`: `app/(app)/dashboard/page.js`, `app/(app)/clientes/page.js`, `app/(app)/clientes/[id]/page.js`, `app/(app)/parcelas/page.js`
+  - **Pendente de confirmação do usuário após deploy** (ainda não testado em produção)
 
 **Ainda falta (ação manual, não dá pra fazer por código):**
 
 - [ ] Trocar nome do projeto na Vercel de `make-m0n3yy` pra `libretto` (Settings → General → Project Name) — muda a URL pra `libretto.vercel.app`
-- [ ] Testar a navegação mobile nova no celular após o deploy (pode precisar fechar/reabrir o app instalado, ou reinstalar, pra pegar a versão nova por causa de cache do PWA)
-- [ ] Se alguma tabela específica ainda ficar cortada/com scroll horizontal dentro dela (ex: tabela de Associados que cortou a coluna "Saldo Devedor" nos prints), reportar com print pra ajuste pontual daquele componente
+- [ ] Testar no celular se as tabelas agora arrastam corretamente pros lados (após o deploy do commit de scroll horizontal)
 
 ---
 
@@ -41,7 +41,8 @@ O objetivo é o sistema funcionar "como um app" no celular do contratante (insta
 - Adicionada **`periodicidade`** (`mensal`/`semanal`) em `gerarParcelas()` — default `mensal`, não quebra nada existente
 - **Migração já aplicada em produção e agora registrada no repositório:** `supabase/migrations/002_periodicidade_juros_fixo.sql` (coluna `periodicidade` em `emprestimos` + `tipo_juros` liberando `'fixo'`). Ela já tinha sido rodada direto no Supabase antes de o arquivo existir no repo — o `schema.sql` base foi atualizado junto pra não ficar divergente do banco real. Se for provisionar um Supabase novo do zero: rodar `schema.sql` e depois as migrations em `supabase/migrations/` em ordem.
 - Ajuste de `app/layout.js` (metadata/viewport) e geração dos ícones PWA
-- Navegação mobile (BottomNav + Sidebar responsiva) — ver seção PWA acima para detalhes
+- Navegação mobile (BottomNav + Sidebar responsiva) — ver seção PWA acima
+- Correção de scroll horizontal nas 4 tabelas do sistema — ver seção PWA acima
 
 ---
 
@@ -62,7 +63,7 @@ O objetivo é o sistema funcionar "como um app" no celular do contratante (insta
 
 - [ ] Teste end-to-end completo em produção
 - [ ] Estado vazio mais elaborado / paginação se a base crescer
-- [ ] Revisar tabelas (ex: `/clientes`) que ainda cortam coluna em telas pequenas — ver pendência da seção PWA acima
+- [ ] Confirmar visualmente que o `.table-scroll` (Conta A) não quebrou nenhum espaçamento/alinhamento das telas que a Conta B estilizou
 
 ---
 

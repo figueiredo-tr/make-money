@@ -102,43 +102,45 @@ export default function DashboardPage() {
                 Nenhum vencimento nos próximos 7 dias.
               </p>
             ) : (
-              <table className="ledger">
-                <thead>
-                  <tr>
-                    <th>Associado</th>
-                    <th>Parcela</th>
-                    <th>Vencimento</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vencimentos.map((v) => (
-                    <tr key={v.parcela_id}>
-                      <td>{v.cliente_nome}</td>
-                      <td className="font-mono text-muted">
-                        #{v.numero_parcela}
-                      </td>
-                      <td className="font-mono">
-                        {new Date(
-                          v.data_vencimento + "T00:00:00",
-                        ).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="font-mono">
-                        {(
-                          v.valor_previsto - (v.valor_pago || 0)
-                        ).toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </td>
-                      <td>
-                        <Seal status={v.status} />
-                      </td>
+              <div className="table-scroll">
+                <table className="ledger">
+                  <thead>
+                    <tr>
+                      <th>Associado</th>
+                      <th>Parcela</th>
+                      <th>Vencimento</th>
+                      <th>Valor</th>
+                      <th>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {vencimentos.map((v) => (
+                      <tr key={v.parcela_id}>
+                        <td>{v.cliente_nome}</td>
+                        <td className="font-mono text-muted">
+                          #{v.numero_parcela}
+                        </td>
+                        <td className="font-mono">
+                          {new Date(
+                            v.data_vencimento + "T00:00:00",
+                          ).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="font-mono">
+                          {(
+                            v.valor_previsto - (v.valor_pago || 0)
+                          ).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </td>
+                        <td>
+                          <Seal status={v.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </Card>
         </>
