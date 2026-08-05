@@ -3,82 +3,66 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 04/08/2026 — Conta B
+Última atualização: 05/08/2026 — Conta B
 
 ---
 
 ## 🎨 Diretriz de tema visual
 
-Identidade definida e aplicada: **"Libretto"** — nome discreto (vem de "libretto di risparmio", caderneta bancária italiana real). Paleta escura (preto/bordô/dourado), tipografia Fraunces + Inter + JetBrains Mono, cards com cantos em moldura dourada, selos de status em vez de badges genéricos. Ver `app/globals.css` e `tailwind.config.js` pro token system completo.
-
-Vocabulário aplicado na UI:
-
-- Dashboard → "Libretto"
-- Clientes → "Associados"
-- Empréstimo ativo → selo "Em aberto" (dourado)
-- Quitado → selo verde musgo
-- Atrasado → selo bordô
+Identidade "Libretto" aplicada em todas as telas, incluindo a ficha de cliente e parcelas (Conta C seguiu o padrão certinho). Ver `app/globals.css` e `tailwind.config.js`.
 
 ---
 
 ## 🅰️ CONTA A — Backend & Dados
 
-**Status: concluído.** Schema, RLS, `lib/calculos.js`, `lib/parcelas.js`, views (`resumo_geral`, `clientes_com_saldo`, `proximos_vencimentos`) — tudo rodado e validado no Supabase real.
+**Status: concluído**, com 2 pendências abertas pela Conta B (ver abaixo — mexeu em `lib/calculos.js` e `lib/parcelas.js`, avaliar se está de acordo):
 
-**Pendência menor:** confirmar com o cliente se o padrão é juros simples ou composto (hoje o formulário deixa escolher por empréstimo).
+- Adicionado modo de juros **`fixo`** (taxa única sobre o valor, não multiplicada por parcela) em `calcularParcela()` — mantém `simples`/`composto` como estavam
+- Adicionada **`periodicidade`** (`mensal`/`semanal`) em `gerarParcelas()` — default `mensal`, não quebra nada existente
+- **Migração pendente de rodar no Supabase:** `supabase/migrations/002_periodicidade_juros_fixo.sql` (adiciona coluna `periodicidade` e permite `tipo_juros = 'fixo'`) — **se ainda não rodou, os inserts de empréstimo vão falhar**
 
 ---
 
 ## 🅱️ CONTA B — Frontend & UI
 
-**Status: concluído e em produção.**
+**Status: concluído e em produção** (https://make-m0n3yy.vercel.app).
 
-**Feito:**
+**Feito desde a última atualização:**
 
-- Tema visual "Libretto" completo (`app/globals.css`, `tailwind.config.js`)
-- `AuthProvider` + guarda de autenticação em `app/(app)/layout.js`
-- `app/login` — login sem cadastro público
-- `app/(app)/dashboard` — cards de `resumo_geral` + `proximos_vencimentos`
-- `app/(app)/clientes` — listagem de `clientes_com_saldo` com busca
-- `app/(app)/clientes/novo` — cadastro de cliente
-- `app/(app)/emprestimos/novo` — cadastro de empréstimo com prévia de cálculo + chamada a `gerarParcelas()`
-- `next` atualizado 14.2.15 → 14.2.35 (corrige vulnerabilidades críticas/altas)
-- **Deploy resolvido e no ar:** https://make-m0n3yy.vercel.app (troubleshooting feito: env vars configuradas na Vercel em Settings → Environments, e Framework Preset corrigido pra Next.js — antes estava caindo como "Other"/estático)
+- Corrigido bug do seletor de associado no formulário de empréstimo (era um `<select>` com `size` dinâmico que não respondia a clique) → agora é `components/ui/ClienteCombobox.js`, busca com clique funcionando
+- Formulário de empréstimo com campo de tipo de juros (`fixo`/`simples`/`composto`) e periodicidade (`mensal`/`semanal`)
+- **Nova rota `app/(app)/clientes/[id]/page.js`** — ficha do associado: saldo devedor, nº de empréstimos, parcelas atrasadas, e cada empréstimo com sua tabela de parcelas + botão de pagamento
+- `/clientes` — nomes agora são clicáveis, levam pra ficha
+- `components/ui/ModalPagamento.js` — modal de pagamento extraído como componente compartilhado (usado por `/parcelas` e `/clientes/[id]`)
+- **Reorganizei a tela de Parcelas da Conta C** (estava uma tabela única com todo mundo misturado) → agora agrupada em cards por associado, nome com link pra ficha
 
 **Falta fazer:**
 
-- [ ] Teste end-to-end completo (cadastrar associado → empréstimo → conferir parcelas geradas no Supabase → conferir dashboard) — ainda não validado ponta a ponta em produção
-- [ ] Estado vazio mais elaborado pra quando não há associados ainda
-- [ ] Paginação na listagem de associados se a base crescer
-
-**Nota de segurança:** `npm audit` ainda aponta 2 vulnerabilidades altas (server function endpoints / postcss), só resolvidas com Next 15/16 (breaking change). Avaliar antes de crescer o projeto.
+- [ ] Rodar a migração SQL pendente no Supabase (ver seção Conta A)
+- [ ] Teste end-to-end completo em produção
+- [ ] Estado vazio mais elaborado / paginação se a base crescer
 
 ---
 
 ## 🅲️ CONTA C — Integração, Regras de Negócio & Deploy
 
-**Responsável por:** tela de parcelas, alertas de atraso, testes end-to-end.
-
 **Feito:**
 
-- [ ] (ainda não iniciado)
+- `app/(app)/parcelas/page.js` — registrar pagamento, quitação automática do empréstimo (`verificarQuitacaoEmprestimo` em `lib/parcelas.js`), destaque visual de atraso
+- Deploy na Vercel funcionando
+
+**Nota importante:** a Conta B reorganizou visualmente essa tela (agrupou por associado) por pedido direto do usuário — a lógica de pagamento/quitação que você fez continua igual, só mudou o layout. Confere se ficou do jeito que você esperava.
 
 **Falta fazer:**
 
-- [ ] Tela de parcelas (marcar como pago via `registrarPagamento()`, ver vencidos/próximos)
-- [ ] Destaque visual de parcelas atrasadas
-- [ ] Teste end-to-end: cadastrar cliente → cadastrar empréstimo → gerar parcelas → pagar → refletir no dashboard
+- [ ] Teste end-to-end: cadastrar cliente → empréstimo → gerar parcelas → pagar → refletir no dashboard (com os novos campos `periodicidade` e `tipo_juros = 'fixo'`)
 - [ ] (opcional) Emissão de recibo em PDF
-
-**Já resolvido (não precisa mexer):** deploy na Vercel já está configurado e funcionando — env vars e Framework Preset ok. Se precisar de nova env var no futuro, é em Settings → Environments no painel da Vercel.
-
-**Próximo passo:** o layout `app/(app)/layout.js` já protege qualquer rota nova — basta criar a pasta (ex: `app/(app)/parcelas/`) que herda auth guard e sidebar automaticamente. Seguir o padrão visual em `app/globals.css` (classes `.card`, `.seal-*`, `.ledger`, `.btn-*`, `.input`).
 
 ---
 
 ## Regras gerais pra todas as contas
 
 1. Sempre `git pull` antes de começar a trabalhar.
-2. Mexer só na sua área evita conflito de merge (ver README.md pra estrutura de pastas).
+2. Mexer só na sua área evita conflito de merge — mas nessa sessão a Conta B cruzou pra área de A e C direto a pedido do usuário; revisem antes de assumir que está tudo como vocês deixaram.
 3. Commits pequenos e frequentes, com mensagens claras.
 4. Antes de parar, atualizar a seção correspondente aqui no STATUS.md.

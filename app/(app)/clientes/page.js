@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
@@ -11,6 +12,7 @@ function formatBRL(value) {
 }
 
 export default function ClientesPage() {
+  const router = useRouter();
   const [clientes, setClientes] = useState([]);
   const [busca, setBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -87,8 +89,14 @@ export default function ClientesPage() {
             </thead>
             <tbody>
               {filtrados.map((c) => (
-                <tr key={c.cliente_id}>
-                  <td className="text-ink">{c.nome}</td>
+                <tr
+                  key={c.cliente_id}
+                  onClick={() => router.push(`/clientes/${c.cliente_id}`)}
+                  className="cursor-pointer"
+                >
+                  <td className="text-ink underline decoration-line hover:decoration-gold transition-colors">
+                    {c.nome}
+                  </td>
                   <td className="font-mono text-muted">{c.telefone || '—'}</td>
                   <td className="font-mono text-muted">{c.total_emprestimos}</td>
                   <td className="font-mono">{formatBRL(c.saldo_devedor)}</td>
