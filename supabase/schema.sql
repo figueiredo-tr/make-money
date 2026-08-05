@@ -2,6 +2,11 @@
 -- SCHEMA - Sistema de Gestão de Empréstimos
 -- Projeto: make-money
 -- Responsável: Conta A (Backend & Dados)
+--
+-- Este arquivo reflete o schema-base. Alterações incrementais em
+-- produção ficam registradas em supabase/migrations/*.sql — ao
+-- provisionar um banco novo, rode este arquivo e depois as
+-- migrations em ordem.
 -- ============================================================
 
 -- Extensão para gerar UUID
@@ -34,7 +39,8 @@ create table if not exists emprestimos (
   cliente_id uuid not null references clientes(id) on delete cascade,
   valor_principal numeric(12,2) not null check (valor_principal > 0),
   taxa_juros numeric(6,3) not null check (taxa_juros >= 0), -- em % ao mês
-  tipo_juros text not null default 'simples' check (tipo_juros in ('simples','composto')),
+  tipo_juros text not null default 'simples' check (tipo_juros in ('simples','composto','fixo')),
+  periodicidade text not null default 'mensal' check (periodicidade in ('mensal','semanal')),
   numero_parcelas int not null check (numero_parcelas > 0),
   data_inicio date not null default current_date,
   data_primeiro_vencimento date not null,
