@@ -1,50 +1,52 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
-import { calcularParcela } from '@/lib/calculos';
-import { gerarParcelas } from '@/lib/parcelas';
-import Card from '@/components/ui/Card';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import { calcularParcela } from "@/lib/calculos";
+import { gerarParcelas } from "@/lib/parcelas";
+import Card from "@/components/ui/Card";
+import ClienteCombobox from "@/components/ui/ClienteCombobox";
 
 function formatBRL(value) {
-  return (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return (value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 }
 
 function hojeISO() {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 export default function NovoEmprestimoPage() {
   const router = useRouter();
 
   const [clientes, setClientes] = useState([]);
-  const [buscaCliente, setBuscaCliente] = useState('');
-  const [clienteId, setClienteId] = useState('');
+  const [clienteId, setClienteId] = useState("");
 
-  const [valorPrincipal, setValorPrincipal] = useState('');
-  const [taxaJuros, setTaxaJuros] = useState('');
-  const [tipoJuros, setTipoJuros] = useState('simples');
-  const [numeroParcelas, setNumeroParcelas] = useState('');
-  const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState('');
-  const [observacoes, setObservacoes] = useState('');
+  const [valorPrincipal, setValorPrincipal] = useState("");
+  const [taxaJuros, setTaxaJuros] = useState("");
+  const [tipoJuros, setTipoJuros] = useState("fixo");
+  const [periodicidade, setPeriodicidade] = useState("mensal");
+  const [numeroParcelas, setNumeroParcelas] = useState("");
+  const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState("");
+  const [observacoes, setObservacoes] = useState("");
 
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
 
   useEffect(() => {
     async function carregarClientes() {
-      const { data } = await supabase.from('clientes').select('id, nome, telefone').eq('ativo', true).order('nome');
+      const { data } = await supabase
+        .from("clientes")
+        .select("id, nome, telefone")
+        .eq("ativo", true)
+        .order("nome");
       setClientes(data || []);
     }
     carregarClientes();
   }, []);
-
-  const clientesFiltrados = useMemo(() => {
-    const termo = buscaCliente.trim().toLowerCase();
-    if (!termo) return clientes;
-    return clientes.filter((c) => c.nome.toLowerCase().includes(termo));
-  }, [clientes, buscaCliente]);
 
   const preview = useMemo(() => {
     const p = parseFloat(valorPrincipal);
@@ -61,7 +63,7 @@ export default function NovoEmprestimoPage() {
     setErro(null);
 
     if (!clienteId) {
-      setErro('Selecione um associado.');
+      setErro("Selecione um associado.");
       return;
     }
 
@@ -72,13 +74,14 @@ export default function NovoEmprestimoPage() {
       valor_principal: parseFloat(valorPrincipal),
       taxa_juros: parseFloat(taxaJuros),
       tipo_juros: tipoJuros,
+      periodicidade,
       numero_parcelas: parseInt(numeroParcelas, 10),
       data_primeiro_vencimento: dataPrimeiroVencimento,
       observacoes: observacoes.trim() || null,
     };
 
     const { data: emprestimo, error: erroInsert } = await supabase
-      .from('emprestimos')
+      .from("emprestimos")
       .insert(payload)
       .select()
       .single();
@@ -93,7 +96,7 @@ export default function NovoEmprestimoPage() {
       await gerarParcelas(emprestimo);
     } catch (erroParcelas) {
       setErro(
-        `Empréstimo criado, mas houve erro ao gerar as parcelas: ${erroParcelas.message}. Avise a Conta A/C.`
+        `Empréstimo criado, mas houve erro ao gerar as parcelas: ${erroParcelas.message}. Avise a Conta A/C.`,
       );
       setSalvando(false);
       return;
@@ -107,39 +110,26 @@ export default function NovoEmprestimoPage() {
     <div className="px-8 py-8 max-w-2xl">
       <header className="mb-8">
         <p className="eyebrow mb-1">Novo lançamento</p>
-        <h1 className="font-display italic text-3xl text-ink">Registrar empréstimo</h1>
+        <h1 className="font-display italic text-3xl text-ink">
+          Registrar empréstimo
+        </h1>
       </header>
 
       <Card className="mb-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="field-label" htmlFor="busca-cliente">
+            <label className="field-label" htmlFor="cliente-combobox">
               Associado *
             </label>
-            <input
-              id="busca-cliente"
-              className="input mb-2"
-              placeholder="Buscar associado por nome…"
-              value={buscaCliente}
-              onChange={(e) => setBuscaCliente(e.target.value)}
-            />
-            <select
-              className="input"
-              required
+            <ClienteCombobox
+              clientes={clientes}
               value={clienteId}
-              onChange={(e) => setClienteId(e.target.value)}
-              size={clientesFiltrados.length > 1 ? Math.min(clientesFiltrados.length, 5) : undefined}
-            >
-              <option value="">Selecione…</option>
-              {clientesFiltrados.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nome} {c.telefone ? `— ${c.telefone}` : ''}
-                </option>
-              ))}
-            </select>
+              onChange={setClienteId}
+            />
             {clientes.length === 0 && (
               <p className="text-xs text-faint mt-2">
-                Nenhum associado ativo cadastrado ainda. Cadastre um associado primeiro.
+                Nenhum associado ativo cadastrado ainda. Cadastre um associado
+                primeiro.
               </p>
             )}
           </div>
@@ -163,7 +153,8 @@ export default function NovoEmprestimoPage() {
             </div>
             <div>
               <label className="field-label" htmlFor="taxa">
-                Taxa de juros (% a.m.) *
+                Taxa de juros (%) —{" "}
+                {tipoJuros === "fixo" ? "total sobre o valor" : "ao mês"} *
               </label>
               <input
                 id="taxa"
@@ -174,7 +165,7 @@ export default function NovoEmprestimoPage() {
                 className="input font-mono"
                 value={taxaJuros}
                 onChange={(e) => setTaxaJuros(e.target.value)}
-                placeholder="5"
+                placeholder={tipoJuros === "fixo" ? "30" : "5"}
               />
             </div>
           </div>
@@ -190,26 +181,42 @@ export default function NovoEmprestimoPage() {
                 value={tipoJuros}
                 onChange={(e) => setTipoJuros(e.target.value)}
               >
-                <option value="simples">Simples</option>
-                <option value="composto">Composto</option>
+                <option value="fixo">Fixo (sobre o valor)</option>
+                <option value="simples">Simples (ao mês)</option>
+                <option value="composto">Composto (ao mês)</option>
               </select>
             </div>
             <div>
-              <label className="field-label" htmlFor="parcelas">
-                Nº de parcelas *
+              <label className="field-label" htmlFor="periodicidade">
+                Periodicidade das parcelas *
               </label>
-              <input
-                id="parcelas"
-                type="number"
-                min="1"
-                step="1"
-                required
-                className="input font-mono"
-                value={numeroParcelas}
-                onChange={(e) => setNumeroParcelas(e.target.value)}
-                placeholder="12"
-              />
+              <select
+                id="periodicidade"
+                className="input"
+                value={periodicidade}
+                onChange={(e) => setPeriodicidade(e.target.value)}
+              >
+                <option value="mensal">Mensal</option>
+                <option value="semanal">Semanal</option>
+              </select>
             </div>
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="parcelas">
+              Nº de parcelas *
+            </label>
+            <input
+              id="parcelas"
+              type="number"
+              min="1"
+              step="1"
+              required
+              className="input font-mono max-w-[10rem]"
+              value={numeroParcelas}
+              onChange={(e) => setNumeroParcelas(e.target.value)}
+              placeholder="12"
+            />
           </div>
 
           <div>
@@ -241,14 +248,24 @@ export default function NovoEmprestimoPage() {
           </div>
 
           {erro && (
-            <p className="text-sm text-wine bg-wine/10 border border-wine/30 rounded-sm px-3 py-2">{erro}</p>
+            <p className="text-sm text-wine bg-wine/10 border border-wine/30 rounded-sm px-3 py-2">
+              {erro}
+            </p>
           )}
 
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={salvando} className="btn btn-primary">
-              {salvando ? 'Registrando…' : 'Registrar empréstimo'}
+            <button
+              type="submit"
+              disabled={salvando}
+              className="btn btn-primary"
+            >
+              {salvando ? "Registrando…" : "Registrar empréstimo"}
             </button>
-            <button type="button" className="btn btn-ghost" onClick={() => router.push('/clientes')}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => router.push("/clientes")}
+            >
               Cancelar
             </button>
           </div>
@@ -261,15 +278,21 @@ export default function NovoEmprestimoPage() {
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-xs text-muted mb-1">Valor da parcela</p>
-              <p className="font-mono text-lg text-gold">{formatBRL(preview.valorParcela)}</p>
+              <p className="font-mono text-lg text-gold">
+                {formatBRL(preview.valorParcela)}
+              </p>
             </div>
             <div>
               <p className="text-xs text-muted mb-1">Total de juros</p>
-              <p className="font-mono text-lg text-ink">{formatBRL(preview.totalJuros)}</p>
+              <p className="font-mono text-lg text-ink">
+                {formatBRL(preview.totalJuros)}
+              </p>
             </div>
             <div>
               <p className="text-xs text-muted mb-1">Montante total</p>
-              <p className="font-mono text-lg text-ink">{formatBRL(preview.montanteTotal)}</p>
+              <p className="font-mono text-lg text-ink">
+                {formatBRL(preview.montanteTotal)}
+              </p>
             </div>
           </div>
         </Card>
