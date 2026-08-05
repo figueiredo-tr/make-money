@@ -18,6 +18,20 @@ const supabase = createClient(
 );
 
 async function main() {
+  console.log('0. Autenticando...');
+  const email = process.env.TEST_USER_EMAIL;
+  const password = process.env.TEST_USER_PASSWORD;
+
+  if (!email || !password) {
+    throw new Error(
+      'Defina TEST_USER_EMAIL e TEST_USER_PASSWORD no .env.local (usuário criado no Supabase > Authentication > Users)'
+    );
+  }
+
+  const { error: erroLogin } = await supabase.auth.signInWithPassword({ email, password });
+  if (erroLogin) throw new Error(`Erro ao autenticar: ${erroLogin.message}`);
+  console.log('   OK -> logado como', email);
+
   console.log('1. Criando cliente de teste...');
   const { data: cliente, error: erroCliente } = await supabase
     .from('clientes')
