@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 05/08/2026 — Conta A
+Última atualização: 05/08/2026 — Conta B
 
 ---
 
@@ -17,6 +17,7 @@ Identidade "Libretto" aplicada em todas as telas, incluindo a ficha de cliente e
 
 O objetivo é o sistema funcionar "como um app" no celular do contratante (instalável, tela cheia, sem barra do navegador).
 
+- [x] **Ícone definitivo criado pela Conta B** — monograma "L" serifado itálico dourado, fundo escuro com brilho bordô e cantos em moldura dourada (mesma assinatura visual dos cards). Substitui os ícones temporários da Conta A em `public/icon-192.png` e `public/icon-512.png` (mesmos nomes de arquivo, `manifest.json` não mudou). **Pendente: confirmar que apareceu certo após reinstalar o app no celular** (pode precisar remover e adicionar à tela inicial de novo pra limpar cache do ícone antigo).
 - [x] `app/layout.js` — `metadata` com `manifest: '/manifest.json'` e `appleWebApp` (tela cheia no iPhone) + export `viewport` com `themeColor: '#0a0a0a'`
 - [x] Ícones (`icon-192.png`, `icon-512.png`) e `manifest.json` em `public/` na raiz
 - [x] Instalação testada e confirmada funcionando no celular (ícone Libretto na tela inicial, abre em tela cheia)
