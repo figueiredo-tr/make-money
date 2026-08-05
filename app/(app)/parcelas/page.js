@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { atualizarParcelasAtrasadas } from '@/lib/parcelas';
+import { calcularJurosAtraso, diasEmAtraso } from '@/lib/calculos';
 import Card from '@/components/ui/Card';
 import Seal from '@/components/ui/Seal';
 import ModalPagamento from '@/components/ui/ModalPagamento';
@@ -34,6 +35,15 @@ export default function ParcelasPage() {
   const [filtroStatus, setFiltroStatus] = useState('todas');
   const [busca, setBusca] = useState('');
   const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
+  const [expandidos, setExpandidos] = useState(new Set());
+
+  function toggleGrupo(clienteId) {
+    setExpandidos((prev) => {
+      const next = new Set(prev);
+      next.has(clienteId) ? next.delete(clienteId) : next.add(clienteId);
+      return next;
+    });
+  }
 
   async function carregar() {
     setCarregando(true);
@@ -47,7 +57,7 @@ export default function ParcelasPage() {
 
     const { data, error } = await supabase
       .from('parcelas')
-      .select('*, emprestimos(id, cliente_id, status, clientes(id, nome, telefone))')
+      .select('*, emprestimos(id, cliente_id, status, juros_dia, clientes(id, nome, telefone))')
       .order('data_vencimento', { ascending: true });
 
     if (error) setErro(error.message);
@@ -97,11 +107,13 @@ export default function ParcelasPage() {
           telefone: p.emprestimos?.clientes?.telefone,
           parcelas: [],
           atrasadas: 0,
+          restanteTotal: 0,
         });
       }
       const grupo = mapa.get(clienteId);
       grupo.parcelas.push(p);
       if (p.status === 'atrasado') grupo.atrasadas += 1;
+      grupo.restanteTotal += p.valor_previsto - (p.valor_pago || 0);
     }
 
     return Array.from(mapa.values()).sort((a, b) => {
@@ -177,58 +189,89 @@ export default function ParcelasPage() {
         </Card>
       ) : (
         <div className="space-y-5">
-          {grupos.map((grupo) => (
-            <Card key={grupo.clienteId}>
-              <div className="flex items-center justify-between mb-4">
-                <Link
-                  href={`/clientes/${grupo.clienteId}`}
-                  className="font-display italic text-lg text-ink hover:text-gold transition-colors"
+          {grupos.map((grupo) => {
+            const aberto = expandidos.has(grupo.clienteId);
+            return (
+              <Card key={grupo.clienteId}>
+                <button
+                  type="button"
+                  onClick={() => toggleGrupo(grupo.clienteId)}
+                  className="w-full flex items-center justify-between gap-3 text-left"
                 >
-                  {grupo.nome}
-                </Link>
-                {grupo.atrasadas > 0 && <Seal status="atrasado" label={`${grupo.atrasadas} atrasada(s)`} />}
-              </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-faint transition-transform ${aberto ? 'rotate-90' : ''}`}>›</span>
+                    <span className="font-display italic text-lg text-ink">{grupo.nome}</span>
+                    <span className="text-xs text-faint font-mono">
+                      {grupo.parcelas.length} parcela(s) · restante {formatBRL(grupo.restanteTotal)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {grupo.atrasadas > 0 && <Seal status="atrasado" label={`${grupo.atrasadas} atrasada(s)`} />}
+                    <Link
+                      href={`/clientes/${grupo.clienteId}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-muted hover:text-gold transition-colors"
+                    >
+                      ver ficha →
+                    </Link>
+                  </div>
+                </button>
 
-              <table className="ledger">
-                <thead>
-                  <tr>
-                    <th>Parcela</th>
-                    <th>Vencimento</th>
-                    <th>Valor previsto</th>
-                    <th>Restante</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {grupo.parcelas.map((p) => {
-                    const restante = p.valor_previsto - (p.valor_pago || 0);
-                    return (
-                      <tr key={p.id} className={p.status === 'atrasado' ? 'bg-wine/[0.04]' : ''}>
-                        <td className="font-mono text-muted">#{p.numero_parcela}</td>
-                        <td className="font-mono">{formatData(p.data_vencimento)}</td>
-                        <td className="font-mono">{formatBRL(p.valor_previsto)}</td>
-                        <td className="font-mono">{restante > 0 ? formatBRL(restante) : '—'}</td>
-                        <td>
-                          <Seal status={p.status} />
-                        </td>
-                        <td className="text-right">
-                          {p.status !== 'pago' && (
-                            <button
-                              className="btn btn-ghost !py-1.5 !px-3 !text-xs"
-                              onClick={() => setParcelaSelecionada(p)}
-                            >
-                              Registrar pagamento
-                            </button>
-                          )}
-                        </td>
+                {aberto && (
+                  <table className="ledger mt-4">
+                    <thead>
+                      <tr>
+                        <th>Parcela</th>
+                        <th>Vencimento</th>
+                        <th>Valor previsto</th>
+                        <th>Restante</th>
+                        <th>Juros dia</th>
+                        <th>Status</th>
+                        <th></th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </Card>
-          ))}
+                    </thead>
+                    <tbody>
+                      {grupo.parcelas.map((p) => {
+                        const restante = p.valor_previsto - (p.valor_pago || 0);
+                        const dias = diasEmAtraso(p.data_vencimento);
+                        const juros = calcularJurosAtraso(restante, p.emprestimos?.juros_dia, dias);
+                        return (
+                          <tr key={p.id} className={p.status === 'atrasado' ? 'bg-wine/[0.04]' : ''}>
+                            <td className="font-mono text-muted">#{p.numero_parcela}</td>
+                            <td className="font-mono">{formatData(p.data_vencimento)}</td>
+                            <td className="font-mono">{formatBRL(p.valor_previsto)}</td>
+                            <td className="font-mono">{restante > 0 ? formatBRL(restante) : '—'}</td>
+                            <td className="font-mono">
+                              {juros > 0 ? (
+                                <span className="text-wine-soft" style={{ color: '#e0949e' }}>
+                                  +{formatBRL(juros)} <span className="text-faint">({dias}d)</span>
+                                </span>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                            <td>
+                              <Seal status={p.status} />
+                            </td>
+                            <td className="text-right">
+                              {p.status !== 'pago' && (
+                                <button
+                                  className="btn btn-ghost !py-1.5 !px-3 !text-xs"
+                                  onClick={() => setParcelaSelecionada(p)}
+                                >
+                                  Registrar pagamento
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 

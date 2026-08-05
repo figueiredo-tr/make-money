@@ -29,6 +29,7 @@ export default function NovoEmprestimoPage() {
   const [taxaJuros, setTaxaJuros] = useState("");
   const [tipoJuros, setTipoJuros] = useState("fixo");
   const [periodicidade, setPeriodicidade] = useState("mensal");
+  const [jurosDia, setJurosDia] = useState("");
   const [numeroParcelas, setNumeroParcelas] = useState("");
   const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -75,6 +76,7 @@ export default function NovoEmprestimoPage() {
       taxa_juros: parseFloat(taxaJuros),
       tipo_juros: tipoJuros,
       periodicidade,
+      juros_dia: parseFloat(jurosDia) || 0,
       numero_parcelas: parseInt(numeroParcelas, 10),
       data_primeiro_vencimento: dataPrimeiroVencimento,
       observacoes: observacoes.trim() || null,
@@ -200,6 +202,25 @@ export default function NovoEmprestimoPage() {
                 <option value="semanal">Semanal</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="field-label" htmlFor="juros-dia">
+              Juros ao dia por atraso (%)
+            </label>
+            <input
+              id="juros-dia"
+              type="number"
+              min="0"
+              step="0.01"
+              className="input font-mono max-w-[10rem]"
+              value={jurosDia}
+              onChange={(e) => setJurosDia(e.target.value)}
+              placeholder="0,33"
+            />
+            <p className="text-xs text-faint mt-1.5">
+              Aplicado sobre o valor restante da parcela, multiplicado pelos dias de atraso.
+            </p>
           </div>
 
           <div>
