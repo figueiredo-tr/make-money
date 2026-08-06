@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 05/08/2026 — Conta B
+Última atualização: 06/08/2026 — Conta C
 
 ---
 
@@ -81,10 +81,12 @@ O objetivo é o sistema funcionar "como um app" no celular do contratante (insta
 - Corrigido PWA: ícones e `manifest.json` estavam em `app/public/` (não servido pelo Next.js) e movidos pra `public/` na raiz
 - Removida migration duplicada `supabase/002_periodicidade_juros_fixo.sql` (fora da pasta `migrations/`, conteúdo idêntico ao que já existia em `supabase/migrations/002_...`)
 - Deploy na Vercel: resolvido problema de Framework Preset resetando pra "Other" (causava "No Output Directory named public") — reconfirmado como "Next.js" nas Settings
+- **Editar/excluir associado:** nova rota `app/(app)/clientes/[id]/editar/page.js` (form pré-preenchido, `update` no Supabase) + botões "Editar" e "Excluir" na ficha do associado (`app/(app)/clientes/[id]/page.js`). Excluir abre modal de confirmação — se o associado já tem empréstimos, avisa que a exclusão é em cascata (apaga empréstimos/parcelas/pagamentos junto, `on delete cascade` já existia no schema) antes de confirmar. Não precisou de migration nova, RLS já permitia update/delete em `clientes`.
 
 **Falta fazer:**
 
 - [ ] Teste end-to-end: cadastrar cliente → empréstimo (testar `tipo_juros = 'fixo'`, `periodicidade = 'semanal'`, `juros_dia_tipo` nos dois modos) → gerar parcelas → pagar → refletir no dashboard
+- [ ] Testar editar/excluir associado em produção (excluir um associado sem empréstimos e um com empréstimos, conferir cascade)
 - [ ] (opcional) Emissão de recibo em PDF
 - [ ] Trocar nome do projeto na Vercel pra `libretto` — ação manual no painel, ninguém fez ainda
 - [ ] Rodar migrations `003` e `004` no Supabase se ainda não rodou (ver arquivos em `supabase/migrations/`)
