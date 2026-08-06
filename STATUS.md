@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 06/08/2026 — Conta C
+Última atualização: 06/08/2026 — Conta B
 
 ---
 
@@ -17,7 +17,7 @@ Identidade "Libretto" aplicada em todas as telas, incluindo a ficha de cliente e
 
 O objetivo é o sistema funcionar "como um app" no celular do contratante (instalável, tela cheia, sem barra do navegador).
 
-- [x] **Ícone definitivo criado pela Conta B** — monograma "L" serifado itálico dourado, fundo escuro com brilho bordô e cantos em moldura dourada (mesma assinatura visual dos cards). Substitui os ícones temporários da Conta A em `public/icon-192.png` e `public/icon-512.png` (mesmos nomes de arquivo, `manifest.json` não mudou). **Pendente: confirmar que apareceu certo após reinstalar o app no celular** (pode precisar remover e adicionar à tela inicial de novo pra limpar cache do ícone antigo).
+- [x] **Ícone definitivo — corrigido pela Conta B:** monograma "L" itálico dourado, cantos em moldura dourada, fundo escuro com brilho bordô (assinatura visual dos cards). Primeira versão tinha o "L" opticamente desalinhado (baseline padrão do SVG puxava pra baixo/direita) — corrigido com `dominant-baseline="central"`. Testada uma variante alternativa em formato de medalhão/selo circular, mas o usuário preferiu manter o estilo original (itálico + cantos), só com o alinhamento certo. Arquivos: `public/icon-192.png`, `public/icon-512.png` (PWA) + **novo:** `app/icon.png` e `app/apple-icon.png` (favicon real via convenção do Next.js — antes não existia `<link rel="icon">` nenhum, por isso a aba do navegador mostrava o ícone errado). **Pendente: confirmar visualmente em produção** (aba do navegador + reinstalar o app no celular).
 - [x] `app/layout.js` — `metadata` com `manifest: '/manifest.json'` e `appleWebApp` (tela cheia no iPhone) + export `viewport` com `themeColor: '#0a0a0a'`
 - [x] Ícones (`icon-192.png`, `icon-512.png`) e `manifest.json` em `public/` na raiz
 - [x] Instalação testada e confirmada funcionando no celular (ícone Libretto na tela inicial, abre em tela cheia)
