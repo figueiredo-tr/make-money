@@ -3,7 +3,7 @@
 > Atualize este arquivo SEMPRE antes de encerrar uma sessão (limite de uso atingido).
 > Ao abrir uma conta nova, cole o conteúdo deste arquivo como primeira mensagem pra ela pegar contexto rápido.
 
-Última atualização: 06/08/2026 — Conta B
+Última atualização: 06/08/2026 — Conta C
 
 ---
 
@@ -83,10 +83,15 @@ O objetivo é o sistema funcionar "como um app" no celular do contratante (insta
 - Deploy na Vercel: resolvido problema de Framework Preset resetando pra "Other" (causava "No Output Directory named public") — reconfirmado como "Next.js" nas Settings
 - **Editar/excluir associado:** nova rota `app/(app)/clientes/[id]/editar/page.js` (form pré-preenchido, `update` no Supabase) + botões "Editar" e "Excluir" na ficha do associado (`app/(app)/clientes/[id]/page.js`). Excluir abre modal de confirmação — se o associado já tem empréstimos, avisa que a exclusão é em cascata (apaga empréstimos/parcelas/pagamentos junto, `on delete cascade` já existia no schema) antes de confirmar. Não precisou de migration nova, RLS já permitia update/delete em `clientes`.
 
+- **Editar empréstimo:** nova rota `app/(app)/emprestimos/[id]/editar/page.js` + botão "Editar" no card de cada empréstimo na ficha do associado. Se nenhuma parcela foi paga ainda, edita tudo (valor, taxa, tipo de juros, periodicidade, nº de parcelas, data) e regenera as parcelas do zero ao salvar; se já tem parcela paga, trava esses campos (evita invalidar histórico) e libera só juros por atraso, status e observações.
+- **Bug corrigido:** a primeira versão desse arquivo tinha ido parar na pasta errada (`emprestimos/novo/[id]/editar/`, aninhada por engano) e nunca foi commitada no lugar certo — por isso dava 404. Corrigido: pasta errada removida, arquivo recriado em `emprestimos/[id]/editar/`, e o botão "Editar" ajustado pro mesmo estilo visual dos outros botões (antes era um linkzinho pequeno, quase invisível).
+- Conferido o ícone/favicon da Conta B (`app/icon.png`, `app/apple-icon.png`, `public/icon-192.png`, `public/icon-512.png`) — dimensões corretas (512, 180, 192, 512), sem inconsistência.
+
 **Falta fazer:**
 
 - [ ] Teste end-to-end: cadastrar cliente → empréstimo (testar `tipo_juros = 'fixo'`, `periodicidade = 'semanal'`, `juros_dia_tipo` nos dois modos) → gerar parcelas → pagar → refletir no dashboard
 - [ ] Testar editar/excluir associado em produção (excluir um associado sem empréstimos e um com empréstimos, conferir cascade)
+- [ ] Testar editar empréstimo em produção (com e sem parcela paga) e confirmar que a rota `/emprestimos/[id]/editar` não dá mais 404
 - [ ] (opcional) Emissão de recibo em PDF
 - [ ] Trocar nome do projeto na Vercel pra `libretto` — ação manual no painel, ninguém fez ainda
 - [ ] Rodar migrations `003` e `004` no Supabase se ainda não rodou (ver arquivos em `supabase/migrations/`)
