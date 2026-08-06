@@ -38,6 +38,24 @@ export default function ClienteDetalhePage() {
   const [erro, setErro] = useState(null);
   const [mensagem, setMensagem] = useState(null);
   const [parcelaSelecionada, setParcelaSelecionada] = useState(null);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState(null);
+
+  async function handleExcluir() {
+    setExcluindo(true);
+    setErroExclusao(null);
+
+    const { error } = await supabase.from("clientes").delete().eq("id", id);
+
+    if (error) {
+      setErroExclusao(error.message);
+      setExcluindo(false);
+      return;
+    }
+
+    router.push("/clientes");
+  }
 
   async function carregar() {
     setCarregando(true);
@@ -168,9 +186,20 @@ export default function ClienteDetalhePage() {
             {cliente.telefone || "—"} {cliente.cpf ? `· ${cliente.cpf}` : ""}
           </p>
         </div>
-        <Link href={`/emprestimos/novo`} className="btn btn-primary">
-          + Novo empréstimo
-        </Link>
+        <div className="flex gap-3">
+          <Link href={`/clientes/${id}/editar`} className="btn btn-ghost">
+            Editar
+          </Link>
+          <button
+            className="btn btn-ghost !text-wine !border-wine/30"
+            onClick={() => setConfirmandoExclusao(true)}
+          >
+            Excluir
+          </button>
+          <Link href={`/emprestimos/novo`} className="btn btn-primary">
+            + Novo empréstimo
+          </Link>
+        </div>
       </header>
 
       {mensagem && (
@@ -297,6 +326,62 @@ export default function ClienteDetalhePage() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {confirmandoExclusao && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <Card className="w-full max-w-sm">
+            <p className="eyebrow mb-1">Confirmar exclusão</p>
+            <h2 className="font-display italic text-xl text-ink mb-3">
+              {cliente.nome}
+            </h2>
+
+            {emprestimos.length > 0 ? (
+              <p className="text-sm text-muted mb-5">
+                Esse associado tem{" "}
+                <strong className="text-ink">
+                  {emprestimos.length} empréstimo(s)
+                </strong>{" "}
+                e{" "}
+                <strong className="text-ink">
+                  {parcelas.length} parcela(s)
+                </strong>{" "}
+                registradas. Excluir o associado apaga{" "}
+                <strong className="text-wine">tudo isso permanentemente</strong>
+                , incluindo o histórico de pagamentos. Essa ação não pode ser
+                desfeita.
+              </p>
+            ) : (
+              <p className="text-sm text-muted mb-5">
+                Essa ação não pode ser desfeita. O associado será removido
+                permanentemente.
+              </p>
+            )}
+
+            {erroExclusao && (
+              <p className="text-sm text-wine bg-wine/10 border border-wine/30 rounded-sm px-3 py-2 mb-4">
+                {erroExclusao}
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                className="btn btn-primary !bg-wine !text-ink flex-1"
+                disabled={excluindo}
+                onClick={handleExcluir}
+              >
+                {excluindo ? "Excluindo…" : "Sim, excluir"}
+              </button>
+              <button
+                className="btn btn-ghost"
+                disabled={excluindo}
+                onClick={() => setConfirmandoExclusao(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </Card>
         </div>
       )}
 
