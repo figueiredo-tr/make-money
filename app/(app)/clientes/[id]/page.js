@@ -258,11 +258,8 @@ export default function ClienteDetalhePage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Seal status={emp.status} />
-                    <Link
-                      href={`/emprestimos/${emp.id}/editar`}
-                      className="text-xs text-muted hover:text-gold transition-colors"
-                    >
-                      editar
+                    <Link href={`/emprestimos/${emp.id}/editar`} className="btn btn-ghost !py-1.5 !px-3 !text-xs">
+                      Editar
                     </Link>
                   </div>
                 </div>
