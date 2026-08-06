@@ -256,7 +256,15 @@ export default function ClienteDetalhePage() {
                         emp.periodicidade}
                     </p>
                   </div>
-                  <Seal status={emp.status} />
+                  <div className="flex items-center gap-3">
+                    <Seal status={emp.status} />
+                    <Link
+                      href={`/emprestimos/${emp.id}/editar`}
+                      className="text-xs text-muted hover:text-gold transition-colors"
+                    >
+                      editar
+                    </Link>
+                  </div>
                 </div>
 
                 {parcelasDoEmprestimo.length === 0 ? (
