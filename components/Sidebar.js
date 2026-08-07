@@ -16,10 +16,10 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [perfil, setPerfil] = useState(null);
 
   useEffect(() => {
-    getPerfilAtual().then((perfil) => setIsAdmin(perfil?.role === "admin"));
+    getPerfilAtual().then(setPerfil);
   }, []);
 
   async function handleLogout() {
@@ -27,6 +27,7 @@ export default function Sidebar() {
     router.push("/login");
   }
 
+  const isAdmin = perfil?.role === "admin";
   const items = isAdmin
     ? [...NAV_ITEMS, { href: "/admin", label: "Admin" }]
     : NAV_ITEMS;
@@ -61,10 +62,19 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="px-3 py-5 border-t border-line">
+      <div className="px-3 py-4 border-t border-line">
+        <Link
+          href="/perfil"
+          className={`block px-3 py-2 text-sm rounded-sm transition-colors truncate ${
+            pathname === "/perfil" ? "text-gold" : "text-muted hover:text-ink"
+          }`}
+          title={perfil?.nomeExibicao}
+        >
+          {perfil?.nomeExibicao || "Meu Perfil"}
+        </Link>
         <button
           onClick={handleLogout}
-          className="w-full text-left px-3 py-2.5 text-sm text-faint hover:text-muted transition-colors"
+          className="w-full text-left px-3 py-2 text-sm text-faint hover:text-muted transition-colors"
         >
           Sair
         </button>

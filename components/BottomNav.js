@@ -49,6 +49,20 @@ const NAV_ITEMS = [
     label: "Novo",
     icon: <path d="M12 5v14M5 12h14" strokeWidth="1.8" strokeLinecap="round" />,
   },
+  {
+    href: "/perfil",
+    label: "Perfil",
+    icon: (
+      <>
+        <circle cx="12" cy="7.5" r="3.5" strokeWidth="1.6" />
+        <path
+          d="M4.5 20c0-4 3.4-6.8 7.5-6.8s7.5 2.8 7.5 6.8"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+  },
 ];
 
 export default function BottomNav() {
