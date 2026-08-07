@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { getPerfilAtual } from '@/lib/perfil';
 import Card from '@/components/ui/Card';
 
 const VAZIO = {
@@ -19,6 +20,15 @@ export default function NovoClientePage() {
   const [form, setForm] = useState(VAZIO);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [carregandoPerfil, setCarregandoPerfil] = useState(true);
+
+  useEffect(() => {
+    getPerfilAtual().then((p) => {
+      setPerfil(p);
+      setCarregandoPerfil(false);
+    });
+  }, []);
 
   function handleChange(campo) {
     return (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
@@ -27,9 +37,20 @@ export default function NovoClientePage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErro(null);
+
+    if (!perfil?.contratante_id) {
+      setErro(
+        perfil?.role === 'admin'
+          ? 'Contas admin não cadastram associados direto — isso é feito dentro da conta de cada contratante.'
+          : 'Não foi possível identificar seu contratante. Fale com o administrador.'
+      );
+      return;
+    }
+
     setSalvando(true);
 
     const payload = {
+      contratante_id: perfil.contratante_id,
       nome: form.nome.trim(),
       cpf: form.cpf.trim() || null,
       telefone: form.telefone.trim() || null,
@@ -145,7 +166,7 @@ export default function NovoClientePage() {
           )}
 
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={salvando} className="btn btn-primary">
+            <button type="submit" disabled={salvando || carregandoPerfil} className="btn btn-primary">
               {salvando ? 'Salvando…' : 'Salvar associado'}
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => router.push('/clientes')}>

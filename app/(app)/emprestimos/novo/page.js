@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { getPerfilAtual } from "@/lib/perfil";
 import { calcularParcela } from "@/lib/calculos";
 import { gerarParcelas } from "@/lib/parcelas";
 import Card from "@/components/ui/Card";
@@ -37,6 +38,15 @@ export default function NovoEmprestimoPage() {
 
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [carregandoPerfil, setCarregandoPerfil] = useState(true);
+
+  useEffect(() => {
+    getPerfilAtual().then((p) => {
+      setPerfil(p);
+      setCarregandoPerfil(false);
+    });
+  }, []);
 
   useEffect(() => {
     async function carregarClientes() {
@@ -69,9 +79,19 @@ export default function NovoEmprestimoPage() {
       return;
     }
 
+    if (!perfil?.contratante_id) {
+      setErro(
+        perfil?.role === "admin"
+          ? "Contas admin não lançam empréstimos direto — isso é feito dentro da conta de cada contratante."
+          : "Não foi possível identificar seu contratante. Fale com o administrador."
+      );
+      return;
+    }
+
     setSalvando(true);
 
     const payload = {
+      contratante_id: perfil.contratante_id,
       cliente_id: clienteId,
       valor_principal: parseFloat(valorPrincipal),
       taxa_juros: parseFloat(taxaJuros),
@@ -305,7 +325,7 @@ export default function NovoEmprestimoPage() {
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              disabled={salvando}
+              disabled={salvando || carregandoPerfil}
               className="btn btn-primary"
             >
               {salvando ? "Registrando…" : "Registrar empréstimo"}
