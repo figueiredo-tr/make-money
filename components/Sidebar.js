@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { getPerfilAtual } from "@/lib/perfil";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Libretto" },
@@ -14,11 +16,20 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    getPerfilAtual().then((perfil) => setIsAdmin(perfil?.role === "admin"));
+  }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/login");
   }
+
+  const items = isAdmin
+    ? [...NAV_ITEMS, { href: "/admin", label: "Admin" }]
+    : NAV_ITEMS;
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 bg-bg-elevated border-r border-line flex-col relative">
@@ -30,7 +41,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 py-5 space-y-1">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const active =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
