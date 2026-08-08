@@ -139,7 +139,14 @@ export default function AdminContratantePage() {
               <tbody>
                 {clientes.map((c) => (
                   <tr key={c.cliente_id}>
-                    <td className="text-ink">{c.nome}</td>
+                    <td className="text-ink">
+                      <Link
+                        href={`/admin/associado/${c.cliente_id}`}
+                        className="hover:text-gold underline decoration-line-soft underline-offset-2"
+                      >
+                        {c.nome}
+                      </Link>
+                    </td>
                     <td className="text-muted">{c.telefone}</td>
                     <td className="text-muted">{c.total_emprestimos}</td>
                     <td className="text-muted">{formatBRL(c.saldo_devedor)}</td>

@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Card from "@/components/ui/Card";
 import Seal from "@/components/ui/Seal";
 import ModalPagamento from "@/components/ui/ModalPagamento";
+import AnotacoesAssociado from "@/components/ui/AnotacoesAssociado";
 
 function formatBRL(value) {
   return (value || 0).toLocaleString("pt-BR", {
@@ -258,7 +259,10 @@ export default function ClienteDetalhePage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Seal status={emp.status} />
-                    <Link href={`/emprestimos/${emp.id}/editar`} className="btn btn-ghost !py-1.5 !px-3 !text-xs">
+                    <Link
+                      href={`/emprestimos/${emp.id}/editar`}
+                      className="btn btn-ghost !py-1.5 !px-3 !text-xs"
+                    >
                       Editar
                     </Link>
                   </div>
@@ -333,6 +337,10 @@ export default function ClienteDetalhePage() {
           })}
         </div>
       )}
+
+      <div className="mt-6">
+        <AnotacoesAssociado clienteId={id} />
+      </div>
 
       {confirmandoExclusao && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
