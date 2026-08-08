@@ -9,17 +9,31 @@
 
 ---
 
-## ✅ RODADA DE VALIDAÇÃO COMPLETA — TUDO FECHADO (07/08)
+## 📝 ANOTAÇÕES + DETALHE DE ASSOCIADO NO ADMIN — NOVO
 
-Depois que a Conta B achou e corrigiu um bug crítico (inserts de `clientes`/`emprestimos` sem `contratante_id`, quebrava cadastro pra contratante não-admin), as 3 contas consolidaram um checklist único e foi executado ponta a ponta:
+**Pedido do usuário:** cada contratante isolado dos outros (já existia via multi-tenant), admin com visão de tudo, e uma forma de anotar observações livres por associado.
 
-- [x] Migration `006_perfil_nome.sql` rodada em produção
-- [x] Confirmado que `003_juros_dia.sql` e `004_juros_dia_tipo.sql` já estavam rodadas
-- [x] **Teste completo logado como contratante NÃO-admin** (não só admin): cadastrar associado → empréstimo (`fixo`/`semanal`) → parcelas geradas corretamente → pagamento → editar associado → editar empréstimo → editar nome em `/perfil` (persistiu após F5) → excluir associado de teste. **Tudo passou.**
-- [x] Usuário de teste (`teste@libretto.com`) removido do Auth e de `perfis`
-- [x] Projeto renomeado na Vercel — domínio agora é `el-libretto.vercel.app` (nome `libretto` sozinho já estava em uso)
+**Implementado (Conta A):**
 
-**Conclusão: o sistema está validado ponta a ponta como contratante comum, não só como admin. Base estável pra seguir construindo em cima.**
+- Migration `supabase/migrations/007_anotacoes.sql`: nova tabela `anotacoes` (`cliente_id`, `texto`, `created_at`, `created_by`), RLS seguindo o mesmo padrão de isolamento por contratante (via join com `clientes`). Sem `UPDATE` de propósito — é um registro histórico tipo "bloco de notas", corrige excluindo e recriando, não editando
+- `lib/anotacoes.js` — `listarAnotacoes()`, `criarAnotacao()`, `excluirAnotacao()`
+- `components/ui/AnotacoesAssociado.js` — componente reutilizável (prop `somenteLeitura`), usado em 2 lugares:
+  - `app/(app)/clientes/[id]/page.js` (ficha normal do contratante) — pode criar/excluir
+  - `app/(app)/admin/associado/[id]/page.js` (nova rota) — também pode criar/excluir (admin pode registrar observações ao revisar)
+- **Nova rota `app/(app)/admin/associado/[id]/page.js`**: mostra os empréstimos completos de um associado específico (com parcelas, igual à ficha normal), 100% somente leitura pros dados financeiros — só as anotações são editáveis ali
+- `app/(app)/admin/[id]/page.js` atualizado: nome do associado na tabela agora é link pra essa nova rota
+
+**Pendências:**
+
+- [ ] **Rodar `007_anotacoes.sql` no Supabase** — ainda não aplicado em produção
+- [ ] Testar: criar anotação na ficha normal (como contratante), confirmar que aparece; testar como admin em `/admin/associado/[id]`, confirmar drill-down mostra os empréstimos certos e que anotações criadas por admin também aparecem pro contratante (mesma tabela, mesmo cliente_id)
+- [ ] Confirmar que o link "Nome do associado" na tabela `/admin/[id]` está navegando certo
+
+---
+
+## ✅ Validação completa anterior (07/08) — segue de pé
+
+Fluxo testado ponta a ponta logado como contratante NÃO-admin (cadastro, empréstimo, parcelas, pagamento, edição, exclusão, perfil) — tudo passou. Usuário de teste removido. Domínio trocado pra `el-libretto.vercel.app`. Detalhes no histórico do repositório se precisar consultar.
 
 ---
 
@@ -29,56 +43,44 @@ Identidade "Libretto" aplicada em todas as telas. Ver `app/globals.css` e `tailw
 
 ---
 
-## 🕳️ PRÓXIMA DECISÃO GRANDE (aguardando o usuário)
+## 🕳️ PRÓXIMA DECISÃO GRANDE (ainda em aberto)
 
-Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em `contratantes` → criar usuário no Auth → SQL em `perfis`). As 3 contas concordam que essa é a próxima peça grande, necessária pro produto ser vendável sem depender de SQL manual toda vez que fechar um cliente novo.
-
-**Pergunta em aberto pro usuário:** já tem um 2º contratante real perto de fechar (o que tornaria isso urgente), ou ainda é planejamento? Aguardando resposta pra definir se essa é a próxima feature a construir.
+Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em `contratantes` → criar usuário no Auth → SQL em `perfis`). Usuário confirmou que ainda não tem 2º contratante fechado, mas a intenção é expandir. Ainda sem decisão de quando priorizar isso.
 
 ---
 
 ## 🏢 Multi-tenant (Contratantes)
 
-**Status: completo e validado (admin E contratante comum).** Ver seção de validação acima.
+**Status: completo e validado.** Tabelas `contratantes`/`perfis`, RLS em todas as tabelas de dados (incluindo `anotacoes` agora), trigger `trg_perfis_protect`, views atualizadas, área `/admin` com lista de contratantes → `/admin/[id]` (resumo + lista de associados) → `/admin/associado/[id]` (detalhe completo somente leitura, novo).
 
-- Tabelas `contratantes` e `perfis`, RLS em `clientes`/`emprestimos`/`parcelas`/`pagamentos`, trigger `trg_perfis_protect` (impede auto-promoção a admin)
-- Views (`clientes_com_saldo`) + função `resumo_por_contratante(uuid)`
-- Tela `/admin` (lista contratantes) e `/admin/[id]` (read-only: resumo + associados)
-- `schema.sql` e `rls_policies.sql` sincronizados com o estado real de produção (Conta C corrigiu documentação desatualizada)
+**Débito técnico consciente:**
 
-**Débito técnico consciente (não bloqueia nada):**
-
-- `/admin/[id]` é só leitura
-- `BottomNav` sem item "Admin" (só desktop — decisão de escopo, só o Figueiredo usa)
-- Seção 8 da migration 005 (`contratante_id not null`) não rodada — opcional, reforça integridade
+- `BottomNav` sem item "Admin" (só desktop)
+- Seção 8 da migration 005 (`contratante_id not null`) não rodada — opcional
 
 ---
 
 ## 👤 Meu Perfil
 
-**Status: completo e validado.** Nome editável (persistência confirmada), e-mail, tipo de acesso, contagem de associados (só contratante). Migration `006` rodada.
-
----
+**Status: completo e validado.** Nome editável, e-mail, tipo de acesso, contagem de associados.
 
 ## 📱 PWA (app instalável)
 
-**Status: completo.** Ícone, favicon, manifest, instalação, navegação mobile (BottomNav + Sidebar responsiva), scroll horizontal em tabelas — tudo testado e funcionando.
+**Status: completo e validado.** Ícone, manifest, instalação, navegação mobile, scroll horizontal em tabelas.
 
 ---
 
 ## 🅰️ CONTA A — Backend & Dados
 
-**Status: concluído e validado.** Schema, RLS, cálculos de juros, parcelas, PWA, mobile, multi-tenant, perfil — tudo rodando em produção sem pendência conhecida.
+**Status: anotações + drill-down admin entregues, aguardando migration 007 rodar em produção.** Resto (schema, RLS, multi-tenant, perfil, PWA) validado e estável.
 
 ## 🅱️ CONTA B — Frontend & UI
 
-**Status: concluído e validado.** Fluxo completo (cadastro → empréstimo → parcelas → pagamento → quitação), ficha do associado, edição/exclusão, PWA, e o fix crítico de `contratante_id` nos inserts — já testado como contratante não-admin, confirmado funcionando.
+**Status: concluído e validado.** Fluxo completo, ficha do associado (agora com anotações), fix crítico de `contratante_id` confirmado funcionando.
 
 ## 🅲️ CONTA C — Integração, Regras de Negócio & Deploy
 
-**Status: concluído e validado.** Editar/excluir associado e empréstimo (com trava de campos se já tem parcela paga), juros por atraso (%/valor fixo), deploy, documentação (`schema.sql`/`rls_policies.sql`) sincronizada — tudo testado como contratante não-admin.
-
-**Nenhuma das 3 contas tem pendência crítica em aberto no momento.** Próximo passo depende da decisão do usuário sobre priorizar "criar contratante novo" ou outra direção.
+**Status: concluído e validado.** Editar/excluir, juros por atraso, deploy, documentação sincronizada.
 
 ---
 
