@@ -9,31 +9,37 @@
 
 ---
 
-## 📝 ANOTAÇÕES + DETALHE DE ASSOCIADO NO ADMIN — NOVO
+## 📝 ANOTAÇÕES + DETALHE DE ASSOCIADO NO ADMIN
 
-**Pedido do usuário:** cada contratante isolado dos outros (já existia via multi-tenant), admin com visão de tudo, e uma forma de anotar observações livres por associado.
+**Status: código confirmado no repositório + migration rodada. TESTE FUNCIONAL PENDENTE (fica pra amanhã).**
 
-**Implementado (Conta A):**
+**⚠️ Nota de processo importante:** essa feature já tinha sido marcada como "concluída" numa atualização anterior deste arquivo, mas o código nunca tinha sido de fato commitado — só o STATUS.md tinha subido (a Conta C pegou isso e avisou o usuário). Lição: **daqui pra frente, só marcar algo como entregue depois de confirmar `git log --stat` mostrando os arquivos reais no commit**, não só pela conversa. Dessa vez foi confirmado via print do `git log -1 --stat` (commit `cb12b2068d...`, 8 arquivos, 486 inserções).
 
-- Migration `supabase/migrations/007_anotacoes.sql`: nova tabela `anotacoes` (`cliente_id`, `texto`, `created_at`, `created_by`), RLS seguindo o mesmo padrão de isolamento por contratante (via join com `clientes`). Sem `UPDATE` de propósito — é um registro histórico tipo "bloco de notas", corrige excluindo e recriando, não editando
+**O que está confirmado no repositório:**
+
+- `supabase/migrations/007_anotacoes.sql` — tabela `anotacoes` + RLS por contratante (via join com `clientes`). **Rodada em produção pelo usuário, confirmado.**
 - `lib/anotacoes.js` — `listarAnotacoes()`, `criarAnotacao()`, `excluirAnotacao()`
-- `components/ui/AnotacoesAssociado.js` — componente reutilizável (prop `somenteLeitura`), usado em 2 lugares:
-  - `app/(app)/clientes/[id]/page.js` (ficha normal do contratante) — pode criar/excluir
-  - `app/(app)/admin/associado/[id]/page.js` (nova rota) — também pode criar/excluir (admin pode registrar observações ao revisar)
-- **Nova rota `app/(app)/admin/associado/[id]/page.js`**: mostra os empréstimos completos de um associado específico (com parcelas, igual à ficha normal), 100% somente leitura pros dados financeiros — só as anotações são editáveis ali
-- `app/(app)/admin/[id]/page.js` atualizado: nome do associado na tabela agora é link pra essa nova rota
+- `components/ui/AnotacoesAssociado.js` — componente reutilizável (prop `somenteLeitura`)
+- `app/(app)/clientes/[id]/page.js` — ficha normal do contratante, com bloco de anotações (criar/excluir)
+- `app/(app)/admin/associado/[id]/page.js` — nova rota, detalhe completo (empréstimos + parcelas) somente leitura pro financeiro, mas com anotações editáveis
+- `app/(app)/admin/[id]/page.js` — nome do associado agora linka pra rota acima
 
-**Pendências:**
+**🐛 Bug de rota corrigido durante essa sessão:** o arquivo da nova página foi criado numa pasta (`admin/associados`, plural) diferente do link que apontava pra ela (`admin/associado`, singular) — dava 404. Usuário corrigiu renomeando a pasta pra singular; o link no código foi ajustado pra bater (2 idas e vindas até convergir, ver histórico de commits se precisar entender a sequência). **Estado final confirmado consistente:** pasta `app/(app)/admin/associado/[id]/` + link `/admin/associado/${id}` — os dois em singular.
 
-- [ ] **Rodar `007_anotacoes.sql` no Supabase** — ainda não aplicado em produção
-- [ ] Testar: criar anotação na ficha normal (como contratante), confirmar que aparece; testar como admin em `/admin/associado/[id]`, confirmar drill-down mostra os empréstimos certos e que anotações criadas por admin também aparecem pro contratante (mesma tabela, mesmo cliente_id)
-- [ ] Confirmar que o link "Nome do associado" na tabela `/admin/[id]` está navegando certo
+**⏳ Teste funcional — fica pra amanhã (usuário confirmou, sem pressa):**
+
+1. Como admin: Admin → contratante → clica num associado → confirma que abre sem 404 → cria uma anotação
+2. Como contratante: abre a ficha normal desse mesmo associado, confirma que a anotação criada pelo admin aparece (mesma tabela, mesmo `cliente_id` — esperado que apareça pros dois lados)
+3. Cria uma anotação pelo lado do contratante, confirma que salva e aparece (mais recente primeiro)
+4. Testa excluir uma anotação, confirma que some
+
+**Só marcar essa seção como "concluído e validado" depois desse teste ser feito e confirmado pelo usuário.**
 
 ---
 
-## ✅ Validação completa anterior (07/08) — segue de pé
+## ✅ Validação completa anterior (07/08)
 
-Fluxo testado ponta a ponta logado como contratante NÃO-admin (cadastro, empréstimo, parcelas, pagamento, edição, exclusão, perfil) — tudo passou. Usuário de teste removido. Domínio trocado pra `el-libretto.vercel.app`. Detalhes no histórico do repositório se precisar consultar.
+Fluxo core testado ponta a ponta logado como contratante NÃO-admin (cadastro, empréstimo, parcelas, pagamento, edição, exclusão, perfil) — tudo passou. Usuário de teste removido. Domínio trocado pra `el-libretto.vercel.app`.
 
 ---
 
@@ -45,13 +51,13 @@ Identidade "Libretto" aplicada em todas as telas. Ver `app/globals.css` e `tailw
 
 ## 🕳️ PRÓXIMA DECISÃO GRANDE (ainda em aberto)
 
-Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em `contratantes` → criar usuário no Auth → SQL em `perfis`). Usuário confirmou que ainda não tem 2º contratante fechado, mas a intenção é expandir. Ainda sem decisão de quando priorizar isso.
+Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em `contratantes` → criar usuário no Auth → SQL em `perfis`). Usuário ainda não tem 2º contratante fechado, mas pretende expandir. Sem decisão de quando priorizar.
 
 ---
 
 ## 🏢 Multi-tenant (Contratantes)
 
-**Status: completo e validado.** Tabelas `contratantes`/`perfis`, RLS em todas as tabelas de dados (incluindo `anotacoes` agora), trigger `trg_perfis_protect`, views atualizadas, área `/admin` com lista de contratantes → `/admin/[id]` (resumo + lista de associados) → `/admin/associado/[id]` (detalhe completo somente leitura, novo).
+**Status: completo e validado.** Tabelas `contratantes`/`perfis`, RLS em todas as tabelas de dados (incluindo `anotacoes`), trigger `trg_perfis_protect`, área `/admin` → `/admin/[id]` → `/admin/associado/[id]` (novo, ver seção acima).
 
 **Débito técnico consciente:**
 
@@ -62,25 +68,25 @@ Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em
 
 ## 👤 Meu Perfil
 
-**Status: completo e validado.** Nome editável, e-mail, tipo de acesso, contagem de associados.
+**Status: completo e validado.**
 
 ## 📱 PWA (app instalável)
 
-**Status: completo e validado.** Ícone, manifest, instalação, navegação mobile, scroll horizontal em tabelas.
+**Status: completo e validado.**
 
 ---
 
 ## 🅰️ CONTA A — Backend & Dados
 
-**Status: anotações + drill-down admin entregues, aguardando migration 007 rodar em produção.** Resto (schema, RLS, multi-tenant, perfil, PWA) validado e estável.
+**Status: anotações com código no repo + migration rodada, teste funcional pendente pra amanhã.** Resto (schema, RLS, multi-tenant, perfil, PWA) validado e estável.
 
 ## 🅱️ CONTA B — Frontend & UI
 
-**Status: concluído e validado.** Fluxo completo, ficha do associado (agora com anotações), fix crítico de `contratante_id` confirmado funcionando.
+**Status: concluído e validado.**
 
 ## 🅲️ CONTA C — Integração, Regras de Negócio & Deploy
 
-**Status: concluído e validado.** Editar/excluir, juros por atraso, deploy, documentação sincronizada.
+**Status: concluído e validado.** Detectou corretamente que o código de anotações não tinha sido commitado numa checagem anterior — bom trabalho de revisão, vale manter esse hábito de conferir `git log` antes de aceitar "está pronto" de qualquer conta.
 
 ---
 
@@ -91,4 +97,5 @@ Não existe UI pra criar contratante novo — hoje é manual em 3 passos (SQL em
 3. Commits pequenos e frequentes, com mensagens claras.
 4. Antes de parar, atualizar a seção correspondente aqui no STATUS.md.
 5. **Ao rodar migrations grandes no SQL Editor do Supabase**, lembrar que é tudo uma transação só — erro no meio desfaz o que já tinha rodado antes.
-6. **Sempre testar fluxos críticos logado como contratante comum, não só como admin** — RLS pode se comportar diferente e só aparece testando com o usuário real.
+6. **Sempre testar fluxos críticos logado como contratante comum, não só como admin.**
+7. **Nunca marcar uma feature como "concluída" no STATUS.md sem confirmar via `git log --stat` (ou o usuário confirmando explicitamente) que o código realmente foi commitado e pushado** — a conversa com o usuário não é garantia de que o push aconteceu.
